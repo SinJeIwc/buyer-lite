@@ -62,7 +62,9 @@ src/
 
 - **Supabase Auth** (email/password)
 - Роли: `admin` (создаёт пользователей), `buyer` (работает с клиентами)
-- Middleware редиректит на `/login` если не авторизован
+- Middleware редиректит на `/auth/login` если не авторизован
+- **Регистрация отключена** — только админ может создавать пользователей через Admin API
+- Display Name хранится в `user.user_metadata.display_name`
 
 ## Тестовые пользователи
 
@@ -89,6 +91,15 @@ src/
 
 - `.agents/skills/supabase/` — лучшие практики Supabase
 - `.agents/skills/supabase-postgres-best-practices/` — оптимизация PostgreSQL
+
+## Компоненты Supabase (shadcn)
+
+Установлены через `npx shadcn@latest add @supabase/...`:
+- `@supabase/password-based-auth-nextjs` — компоненты авторизации
+
+Доступные для установки:
+- `@supabase/current-user-avatar-nextjs` — аватар пользователя
+- `@supabase/dropzone-nextjs` — загрузка файлов (Storage)
 
 ## Стиль кода
 
