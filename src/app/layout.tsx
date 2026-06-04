@@ -4,11 +4,6 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
-const geistMonoHeading = Geist_Mono({
-  subsets: ["latin"],
-  variable: "--font-heading",
-});
-
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -21,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Buyer Lite",
-  description: "Система учёта для байера",
+  description: "Система отчетности",
 };
 
 export default function RootLayout({
@@ -38,7 +33,6 @@ export default function RootLayout({
         "antialiased",
         geistSans.variable,
         geistMono.variable,
-        geistMonoHeading.variable,
       )}
     >
       <body className="min-h-full flex flex-col">

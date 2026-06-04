@@ -1,22 +1,15 @@
 import {
-  boolean,
   decimal,
   integer,
+  jsonb,
   pgTable,
   text,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Валюты
-export const currencies = pgTable("currencies", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  code: text("code").notNull().unique(), // RUB, KGS, USD
-  name: text("name").notNull(), // Российский рубль, Киргизский сом
-  symbol: text("symbol"), // ₽, с, $
-  isDefault: boolean("is_default").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-});
+// Валюты теперь хранятся в user_profiles.currencies (JSON массив)
+// Формат: [{"code": "RUB", "name": "Российский рубль"}, ...]
 
 // Поставщики (точки на Дордое)
 export const suppliers = pgTable("suppliers", {
@@ -41,9 +34,7 @@ export const clients = pgTable("clients", {
   phone: text("phone"),
   telegram: text("telegram"),
   city: text("city"), // Город доставки
-  defaultCurrencyId: uuid("default_currency_id").references(
-    () => currencies.id,
-  ),
+  defaultCurrencyCode: text("default_currency_code"), // Код валюты (RUB, KGS и т.д.)
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -120,9 +111,7 @@ export const exchangeOperations = pgTable("exchange_operations", {
     precision: 12,
     scale: 2,
   }).notNull(), // Сумма в валюте клиента
-  currencyId: uuid("currency_id")
-    .references(() => currencies.id)
-    .notNull(),
+  currencyCode: text("currency_code").notNull(), // Код валюты (RUB, KGS и т.д.)
   rateReal: decimal("rate_real", { precision: 10, scale: 4 }).notNull(), // Реальный курс
   rateClient: decimal("rate_client", { precision: 10, scale: 4 }).notNull(), // Курс для клиента
   amountKgsReal: decimal("amount_kgs_real", {
@@ -150,6 +139,11 @@ export const balanceTransactions = pgTable("balance_transactions", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export interface CurrencyItem {
+  code: string;
+  name: string;
+}
+
 // Пользователи (байеры) - для авторизации через Supabase Auth
 // Supabase Auth хранит пользователей в своей таблице auth.users
 // Здесь храним дополнительные данные
@@ -157,5 +151,12 @@ export const userProfiles = pgTable("user_profiles", {
   id: uuid("id").primaryKey(), // Совпадает с auth.users.id
   name: text("name").notNull(),
   role: text("role").notNull().default("buyer"), // admin / buyer
+  currencies: jsonb("currencies")
+    .$type<CurrencyItem[]>()
+    .default([
+      { code: "RUB", name: "Российский рубль" },
+      { code: "KGS", name: "Киргизский сом" },
+    ]),
+  defaultCurrencyCode: text("default_currency_code").default("RUB"),
   createdAt: timestamp("created_at").defaultNow(),
 });
