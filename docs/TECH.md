@@ -324,8 +324,9 @@ pnpm add react-hook-form @hookform/resolvers
 ### 2. Environment Variables
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-DATABASE_URL=postgresql://postgres:[password]@db.xxx.supabase.co:5432/postgres
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=eyJ...
+SUPABASE_SECRET_KEY=eyJ...
+DATABASE_URL=postgresql://postgres:[password]@db.xxx.supabase.co:5432/postgres?sslmode=require
 ```
 
 ### 3. Auth (через Supabase)
