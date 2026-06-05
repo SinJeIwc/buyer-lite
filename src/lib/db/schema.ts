@@ -27,9 +27,12 @@ export const itemTypes = pgTable("item_types", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Клиенты
+// Клиенты (привязаны к пользователю)
 export const clients = pgTable("clients", {
   id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
   name: text("name").notNull(),
   phone: text("phone"),
   city: text("city"), // Город доставки

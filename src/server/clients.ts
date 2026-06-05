@@ -1,9 +1,10 @@
 "use server";
 
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { clients } from "@/lib/db/schema";
+import { createClient } from "@/lib/supabase/server";
 
 export interface ClientFormData {
   name: string;
@@ -12,7 +13,22 @@ export interface ClientFormData {
   notes: string;
 }
 
+async function getCurrentUserId(): Promise<string> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Не авторизован");
+  }
+
+  return user.id;
+}
+
 export async function getClients() {
+  const userId = await getCurrentUserId();
+
   return await db
     .select({
       id: clients.id,
@@ -22,10 +38,13 @@ export async function getClients() {
       notes: clients.notes,
     })
     .from(clients)
+    .where(eq(clients.userId, userId))
     .orderBy(clients.name);
 }
 
 export async function getClient(id: string) {
+  const userId = await getCurrentUserId();
+
   const [client] = await db
     .select({
       id: clients.id,
@@ -35,13 +54,16 @@ export async function getClient(id: string) {
       notes: clients.notes,
     })
     .from(clients)
-    .where(eq(clients.id, id));
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
 
   return client;
 }
 
 export async function addClient(data: ClientFormData) {
+  const userId = await getCurrentUserId();
+
   await db.insert(clients).values({
+    userId,
     name: data.name,
     phone: data.phone || null,
     city: data.city || null,
@@ -51,6 +73,8 @@ export async function addClient(data: ClientFormData) {
 }
 
 export async function updateClient(id: string, data: ClientFormData) {
+  const userId = await getCurrentUserId();
+
   await db
     .update(clients)
     .set({
@@ -59,11 +83,15 @@ export async function updateClient(id: string, data: ClientFormData) {
       city: data.city || null,
       notes: data.notes || null,
     })
-    .where(eq(clients.id, id));
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
   revalidatePath("/clients");
 }
 
 export async function deleteClient(id: string) {
-  await db.delete(clients).where(eq(clients.id, id));
+  const userId = await getCurrentUserId();
+
+  await db
+    .delete(clients)
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
   revalidatePath("/clients");
 }
