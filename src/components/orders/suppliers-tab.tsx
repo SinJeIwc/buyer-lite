@@ -45,8 +45,8 @@ export function SuppliersTab() {
         <div className="space-y-2">
           {suppliers.map((supplier) => (
             <Item key={supplier.id} variant="outline" size="xs">
-              <ItemContent className="p-4">
-                <ItemTitle>{supplier.name}</ItemTitle>
+              <ItemContent className="p-4 min-w-0">
+                <ItemTitle className="truncate">{supplier.name}</ItemTitle>
               </ItemContent>
               <ItemActions>
                 <Button

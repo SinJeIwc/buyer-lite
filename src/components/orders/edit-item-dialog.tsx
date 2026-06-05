@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,21 +9,36 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { updateSupplierItem } from "@/server/supplier-items";
+import { useClientsStore } from "@/stores/clients-store";
 
 interface EditItemDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   item: {
     id: string;
+    clientId: string;
+    clientName: string | null;
     name: string;
     quantity: number;
     purchasePrice: string;
   };
   onSuccess: () => void;
+}
+
+interface ClientItem {
+  label: string;
+  value: string;
 }
 
 export function EditItemDialog({
@@ -32,18 +47,38 @@ export function EditItemDialog({
   item,
   onSuccess,
 }: EditItemDialogProps) {
+  const clientsList = useClientsStore((s) => s.clients);
+  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const isLoadingClients = useClientsStore((s) => s.isLoading);
+  const [clientId, setClientId] = useState<string | null>(item.clientId);
   const [name, setName] = useState(item.name);
   const [quantity, setQuantity] = useState(item.quantity.toString());
   const [purchasePrice, setPurchasePrice] = useState(item.purchasePrice);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      fetchClients();
+      setClientId(item.clientId);
+      setName(item.name);
+      setQuantity(item.quantity.toString());
+      setPurchasePrice(item.purchasePrice);
+    }
+  }, [open, item, fetchClients]);
+
+  const clientItems: ClientItem[] = clientsList.map((c) => ({
+    label: c.name,
+    value: c.id,
+  }));
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !clientId) return;
 
     setIsLoading(true);
     try {
       await updateSupplierItem(item.id, {
+        clientId,
         name: name.trim(),
         quantity: parseInt(quantity, 10) || 0,
         purchasePrice: parseFloat(purchasePrice) || 0,
@@ -65,7 +100,29 @@ export function EditItemDialog({
 
           <FieldGroup>
             <Field>
-              <Label htmlFor="edit-name">Название</Label>
+              <FieldLabel>Клиент</FieldLabel>
+              <Select
+                items={clientItems}
+                value={clientId}
+                onValueChange={(v) => v && setClientId(v)}
+                disabled={isLoadingClients}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выберите клиента" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {clientItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="edit-name">Название</FieldLabel>
               <Input
                 id="edit-name"
                 value={name}
@@ -74,7 +131,7 @@ export function EditItemDialog({
               />
             </Field>
             <Field>
-              <Label htmlFor="edit-quantity">Количество</Label>
+              <FieldLabel htmlFor="edit-quantity">Количество</FieldLabel>
               <Input
                 id="edit-quantity"
                 type="number"
@@ -84,7 +141,7 @@ export function EditItemDialog({
               />
             </Field>
             <Field>
-              <Label htmlFor="edit-price">Цена за штуку</Label>
+              <FieldLabel htmlFor="edit-price">Цена за штуку</FieldLabel>
               <Input
                 id="edit-price"
                 type="number"
@@ -96,7 +153,10 @@ export function EditItemDialog({
           </FieldGroup>
 
           <DialogFooter>
-            <Button type="submit" disabled={isLoading || !name.trim()}>
+            <Button
+              type="submit"
+              disabled={isLoading || !name.trim() || !clientId}
+            >
               {isLoading ? "Сохранение..." : "Сохранить"}
             </Button>
           </DialogFooter>

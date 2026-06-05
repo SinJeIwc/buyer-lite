@@ -29,12 +29,15 @@ export async function getSupplierItems(supplierId?: string) {
     .select({
       id: supplierItems.id,
       supplierId: supplierItems.supplierId,
+      clientId: supplierItems.clientId,
+      clientName: clients.name,
       name: supplierItems.name,
       quantity: supplierItems.quantity,
       purchasePrice: supplierItems.purchasePrice,
       createdAt: supplierItems.createdAt,
     })
     .from(supplierItems)
+    .leftJoin(clients, eq(supplierItems.clientId, clients.id))
     .where(
       supplierId
         ? and(
@@ -84,6 +87,7 @@ export async function getAllSupplierItemsGrouped() {
 }
 
 export async function createSupplierItem(data: {
+  clientId: string;
   supplierId: string;
   name: string;
   quantity: number;
@@ -93,6 +97,7 @@ export async function createSupplierItem(data: {
 
   await db.insert(supplierItems).values({
     userId,
+    clientId: data.clientId,
     supplierId: data.supplierId,
     name: data.name,
     quantity: data.quantity,
@@ -105,6 +110,7 @@ export async function createSupplierItem(data: {
 export async function updateSupplierItem(
   id: string,
   data: {
+    clientId?: string;
     name?: string;
     quantity?: number;
     purchasePrice?: number;
@@ -113,6 +119,7 @@ export async function updateSupplierItem(
   const userId = await getCurrentUserId();
 
   const updateData: Record<string, unknown> = { updatedAt: new Date() };
+  if (data.clientId !== undefined) updateData.clientId = data.clientId;
   if (data.name !== undefined) updateData.name = data.name;
   if (data.quantity !== undefined) updateData.quantity = data.quantity;
   if (data.purchasePrice !== undefined)

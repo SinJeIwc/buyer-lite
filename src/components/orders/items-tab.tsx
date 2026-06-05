@@ -9,7 +9,6 @@ import {
   Item,
   ItemActions,
   ItemContent,
-  ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
 import { LengthZero } from "@/components/ui/length-zero";
@@ -21,6 +20,8 @@ import { EditItemDialog } from "./edit-item-dialog";
 interface SupplierItem {
   id: string;
   supplierId: string;
+  clientId: string;
+  clientName: string | null;
   name: string;
   quantity: number;
   purchasePrice: string;
@@ -55,15 +56,22 @@ export function ItemsTab() {
         <div className="space-y-2">
           {items.map((item) => (
             <Item key={item.id} variant="outline" size="xs">
-              <ItemContent className="p-4">
-                <ItemTitle>{item.name}</ItemTitle>
-                <ItemDescription>
-                  <span className="text-sm text-muted-foreground">
-                    {getSupplierName(item.supplierId)} • {item.quantity} шт •{" "}
-                    {parseFloat(item.purchasePrice).toLocaleString("ru-RU")}{" "}
-                    с/шт
+              <ItemContent className="p-4 min-w-0">
+                <ItemTitle className="truncate">{item.name}</ItemTitle>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground overflow-hidden">
+                  <span className="truncate shrink-0 max-w-20">
+                    {item.clientName || "—"}
                   </span>
-                </ItemDescription>
+                  <span className="shrink-0">•</span>
+                  <span className="truncate shrink-0 max-w-20">
+                    {getSupplierName(item.supplierId)}
+                  </span>
+                  <span className="shrink-0">•</span>
+                  <span className="truncate shrink-0">
+                    {item.quantity}шт по{" "}
+                    {parseFloat(item.purchasePrice).toLocaleString("ru-RU")}с
+                  </span>
+                </div>
               </ItemContent>
               <ItemActions>
                 <Button

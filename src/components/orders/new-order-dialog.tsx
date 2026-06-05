@@ -1,7 +1,7 @@
 "use client";
 
 import { Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,10 +10,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createSupplierItem } from "@/server/supplier-items";
+import { useClientsStore } from "@/stores/clients-store";
 
 interface NewOrderDialogProps {
   open: boolean;
@@ -30,6 +38,11 @@ interface OrderItem {
   purchasePrice: number;
 }
 
+interface ClientItem {
+  label: string;
+  value: string;
+}
+
 export function NewOrderDialog({
   open,
   onOpenChange,
@@ -37,15 +50,33 @@ export function NewOrderDialog({
   supplierName,
   onSuccess,
 }: NewOrderDialogProps) {
+  const clientsList = useClientsStore((s) => s.clients);
+  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const [clientId, setClientId] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([
     { _id: crypto.randomUUID(), name: "", quantity: 1, purchasePrice: 0 },
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (open) {
+      fetchClients();
+      setClientId(null);
+      setItems([
+        { _id: crypto.randomUUID(), name: "", quantity: 0, purchasePrice: 0 },
+      ]);
+    }
+  }, [open, fetchClients]);
+
+  const clientItems: ClientItem[] = clientsList.map((c) => ({
+    label: c.name,
+    value: c.id,
+  }));
+
   function addItem() {
     setItems([
       ...items,
-      { _id: crypto.randomUUID(), name: "", quantity: 1, purchasePrice: 0 },
+      { _id: crypto.randomUUID(), name: "", quantity: 0, purchasePrice: 0 },
     ]);
   }
 
@@ -61,13 +92,21 @@ export function NewOrderDialog({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!supplierId || items.length === 0) return;
+    if (!clientId || !supplierId || items.length === 0) return;
+
+    // Валидация: все поля обязательны
+    const hasInvalidItems = items.some(
+      (item) =>
+        !item.name.trim() || item.quantity <= 0 || item.purchasePrice <= 0,
+    );
+    if (hasInvalidItems) return;
 
     setIsLoading(true);
     try {
       for (const item of items) {
         if (item.name.trim() && item.quantity > 0) {
           await createSupplierItem({
+            clientId,
             supplierId,
             name: item.name.trim(),
             quantity: item.quantity,
@@ -76,9 +115,6 @@ export function NewOrderDialog({
         }
       }
       onOpenChange(false);
-      setItems([
-        { _id: crypto.randomUUID(), name: "", quantity: 1, purchasePrice: 0 },
-      ]);
       onSuccess();
     } finally {
       setIsLoading(false);
@@ -90,13 +126,37 @@ export function NewOrderDialog({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <DialogHeader>
-            <DialogTitle>Заказ: {supplierName}</DialogTitle>
+            <DialogTitle>Заказ ({supplierName})</DialogTitle>
           </DialogHeader>
 
           <FieldGroup>
+            {/* Клиент */}
+            <Field>
+              <FieldLabel>Клиент</FieldLabel>
+              <Select
+                items={clientItems}
+                value={clientId}
+                onValueChange={setClientId}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Выберите клиента" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {clientItems.map((item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </Field>
+
+            {/* Товары */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label>Товары</Label>
+                <FieldLabel>Товары</FieldLabel>
                 <Button
                   type="button"
                   variant="outline"
@@ -131,7 +191,7 @@ export function NewOrderDialog({
                   </div>
 
                   <Field>
-                    <Label className="text-xs">Название</Label>
+                    <FieldLabel className="text-xs">Название</FieldLabel>
                     <Input
                       placeholder="ADE25 юбка синяя"
                       value={item.name}
@@ -143,7 +203,7 @@ export function NewOrderDialog({
 
                   <div className="grid grid-cols-2 gap-2">
                     <Field>
-                      <Label className="text-xs">Количество</Label>
+                      <FieldLabel className="text-xs">Количество</FieldLabel>
                       <Input
                         type="number"
                         min="1"
@@ -157,7 +217,7 @@ export function NewOrderDialog({
                       />
                     </Field>
                     <Field>
-                      <Label className="text-xs">Цена/шт</Label>
+                      <FieldLabel className="text-xs">Цена/шт</FieldLabel>
                       <Input
                         type="number"
                         step="0.01"
@@ -181,8 +241,14 @@ export function NewOrderDialog({
               type="submit"
               disabled={
                 isLoading ||
-                items.filter((i) => i.name.trim() && i.quantity > 0).length ===
-                  0
+                !clientId ||
+                items.length === 0 ||
+                items.some(
+                  (item) =>
+                    !item.name.trim() ||
+                    item.quantity <= 0 ||
+                    item.purchasePrice <= 0,
+                )
               }
             >
               {isLoading ? "Создание..." : "Создать"}

@@ -132,6 +132,9 @@ export const supplierItems = pgTable("supplier_items", {
   userId: uuid("user_id")
     .references(() => userProfiles.id)
     .notNull(),
+  clientId: uuid("client_id")
+    .references(() => clients.id)
+    .notNull(),
   supplierId: uuid("supplier_id")
     .references(() => suppliers.id)
     .notNull(),

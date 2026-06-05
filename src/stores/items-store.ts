@@ -4,6 +4,8 @@ import { getSupplierItems } from "@/server/supplier-items";
 interface SupplierItem {
   id: string;
   supplierId: string;
+  clientId: string;
+  clientName: string | null;
   name: string;
   quantity: number;
   purchasePrice: string;

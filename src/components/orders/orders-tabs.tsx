@@ -26,37 +26,33 @@ export function OrdersTabs() {
     await Promise.all([refreshSuppliers(), refreshItems()]);
   }
 
+  const isLoading = isLoadingSuppliers || isLoadingItems;
+
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
+    <Tabs defaultValue="suppliers">
+      <TabsList className="w-full">
+        <TabsTrigger value="suppliers" className="flex-1">
+          Поставщики
+        </TabsTrigger>
+        <TabsTrigger value="items" className="flex-1">
+          Товары
+        </TabsTrigger>
         <Button
-          variant="outline"
-          size="sm"
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 shrink-0"
           onClick={handleRefresh}
-          disabled={isLoadingSuppliers || isLoadingItems}
+          disabled={isLoading}
         >
-          <RefreshCw
-            className={`w-4 h-4 mr-1 ${isLoadingSuppliers || isLoadingItems ? "animate-spin" : ""}`}
-          />
-          Обновить
+          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
         </Button>
-      </div>
-      <Tabs defaultValue="suppliers">
-        <TabsList className="w-full">
-          <TabsTrigger value="suppliers" className="flex-1">
-            Поставщики
-          </TabsTrigger>
-          <TabsTrigger value="items" className="flex-1">
-            Товары
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="suppliers">
-          <SuppliersTab />
-        </TabsContent>
-        <TabsContent value="items">
-          <ItemsTab />
-        </TabsContent>
-      </Tabs>
-    </div>
+      </TabsList>
+      <TabsContent value="suppliers">
+        <SuppliersTab />
+      </TabsContent>
+      <TabsContent value="items">
+        <ItemsTab />
+      </TabsContent>
+    </Tabs>
   );
 }
