@@ -36,6 +36,7 @@ export async function getClients() {
       phone: clients.phone,
       city: clients.city,
       notes: clients.notes,
+      balance: clients.balance,
     })
     .from(clients)
     .where(eq(clients.userId, userId))

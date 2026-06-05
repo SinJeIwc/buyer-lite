@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Pencil, Phone, PlusIcon, Trash2 } from "lucide-react";
+import { MapPin, Pencil, Phone, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import {
   AlertDialog,
@@ -13,8 +13,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { deleteClient, getClients } from "@/server/clients";
-import { Spinner } from "../ui/spinner";
+import { BalanceButton } from "./balance/balance-button";
 import { ClientFormDialog } from "./client-form-dialog";
 
 interface Client {
@@ -23,6 +24,7 @@ interface Client {
   phone: string | null;
   city: string | null;
   notes: string | null;
+  balance: string;
 }
 
 export function ClientsList() {
@@ -68,29 +70,36 @@ export function ClientsList() {
     setEditId(null);
   }
 
+  function formatBalance(balance: string) {
+    const num = parseFloat(balance);
+    return num.toLocaleString("ru-RU", { minimumFractionDigits: 0 });
+  }
+
   return (
     <div className="space-y-4">
       {/* Кнопка добавления */}
-      <Button onClick={handleAdd} className="w-full">
-        <PlusIcon />
-        Добавить
-      </Button>
+      <div className="flex justify-end">
+        <Button onClick={handleAdd}>+ Клиент</Button>
+      </div>
 
       {/* Список клиентов */}
       {isLoading ? (
-        <div className="flex items-center justify-center min-h-100">
-          <Spinner className="size-8" />
+        <div className="flex justify-center py-8">
+          <Spinner className="w-8 h-8" />
         </div>
       ) : clients.length === 0 ? (
-        <p className="text-center py-8 text-muted-foreground">
-          Пока нет клиентов
-        </p>
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Пока нет клиентов</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Нажмите "+ Клиент" чтобы добавить первого
+          </p>
+        </div>
       ) : (
         <div className="space-y-3">
           {clients.map((client) => (
             <div key={client.id} className="p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center justify-between">
-                <div className="flex flex-col gap-1 max-w-2/3">
+              <div className="flex items-start justify-between">
+                <div className="space-y-1">
                   <h3 className="font-medium">{client.name}</h3>
                   {client.phone && (
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -105,12 +114,13 @@ export function ClientsList() {
                     </div>
                   )}
                   {client.notes && (
-                    <p className="text-sm text-muted-foreground line-clamp-2 wrap-break-word  leading-relaxed">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {client.notes}
                     </p>
                   )}
                 </div>
                 <div className="flex items-center gap-1">
+                  <BalanceButton clientId={client.id} onSuccess={loadClients} />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -127,6 +137,21 @@ export function ClientsList() {
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
+                </div>
+              </div>
+              {/* Баланс */}
+              <div className="mt-3 pt-3 border-t">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Баланс</span>
+                  <span
+                    className={`font-medium ${
+                      parseFloat(client.balance) >= 0
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
+                  >
+                    {formatBalance(client.balance)} с
+                  </span>
                 </div>
               </div>
             </div>

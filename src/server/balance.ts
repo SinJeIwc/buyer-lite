@@ -1,0 +1,142 @@
+"use server";
+
+import { and, desc, eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { db } from "@/lib/db";
+import { balanceOperations, clients } from "@/lib/db/schema";
+import { createClient } from "@/lib/supabase/server";
+
+async function getCurrentUserId(): Promise<string> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new Error("Не авторизован");
+  }
+
+  return user.id;
+}
+
+// ==================== Получить операции клиента ====================
+
+export async function getBalanceOperations(clientId: string) {
+  const userId = await getCurrentUserId();
+
+  return await db
+    .select({
+      id: balanceOperations.id,
+      type: balanceOperations.type,
+      amount: balanceOperations.amount,
+      description: balanceOperations.description,
+      amountForeign: balanceOperations.amountForeign,
+      currencyCode: balanceOperations.currencyCode,
+      rateReal: balanceOperations.rateReal,
+      rateClient: balanceOperations.rateClient,
+      createdAt: balanceOperations.createdAt,
+    })
+    .from(balanceOperations)
+    .where(
+      and(
+        eq(balanceOperations.clientId, clientId),
+        eq(balanceOperations.userId, userId),
+      ),
+    )
+    .orderBy(desc(balanceOperations.createdAt));
+}
+
+// ==================== Пополнение (обмен валюты) ====================
+
+export interface DepositData {
+  clientId: string;
+  amountForeign: number;
+  currencyCode: string;
+  rateReal: number;
+  rateClient: number;
+}
+
+export async function createDeposit(data: DepositData) {
+  const userId = await getCurrentUserId();
+
+  // Проверяем, что клиент принадлежит пользователю
+  const [client] = await db
+    .select({ id: clients.id })
+    .from(clients)
+    .where(and(eq(clients.id, data.clientId), eq(clients.userId, userId)));
+
+  if (!client) {
+    throw new Error("Клиент не найден");
+  }
+
+  // Начисляем клиенту по курсу для клиента
+  const amountKgs = data.amountForeign * data.rateClient;
+
+  // Создаём операцию
+  await db.insert(balanceOperations).values({
+    clientId: data.clientId,
+    userId,
+    type: "deposit",
+    amount: amountKgs.toFixed(2),
+    description: `Обмен ${data.amountForeign.toLocaleString("ru-RU")} ${data.currencyCode}`,
+    amountForeign: data.amountForeign.toFixed(2),
+    currencyCode: data.currencyCode,
+    rateReal: data.rateReal.toFixed(4),
+    rateClient: data.rateClient.toFixed(4),
+  });
+
+  // Обновляем баланс клиента
+  await db
+    .update(clients)
+    .set({
+      balance: sql`${clients.balance} + ${amountKgs.toFixed(2)}`,
+    })
+    .where(eq(clients.id, data.clientId));
+
+  revalidatePath("/clients");
+}
+
+// ==================== Ручная операция ====================
+
+export interface ManualOperationData {
+  clientId: string;
+  type: "deposit" | "order" | "shipping" | "commission" | "manual";
+  amount: number;
+  description: string;
+}
+
+export async function createManualOperation(data: ManualOperationData) {
+  const userId = await getCurrentUserId();
+
+  // Проверяем, что клиент принадлежит пользователю
+  const [client] = await db
+    .select({ id: clients.id })
+    .from(clients)
+    .where(and(eq(clients.id, data.clientId), eq(clients.userId, userId)));
+
+  if (!client) {
+    throw new Error("Клиент не найден");
+  }
+
+  // Создаём операцию
+  await db.insert(balanceOperations).values({
+    clientId: data.clientId,
+    userId,
+    type: data.type,
+    amount: data.amount.toFixed(2),
+    description: data.description || null,
+  });
+
+  // Обновляем баланс клиента
+  await db
+    .update(clients)
+    .set({
+      balance: sql`${clients.balance} + ${data.amount.toFixed(2)}`,
+    })
+    .where(eq(clients.id, data.clientId));
+
+  revalidatePath("/clients");
+}
+
+// Импорт sql из drizzle-orm
+import { sql } from "drizzle-orm";

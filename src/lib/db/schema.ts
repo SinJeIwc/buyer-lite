@@ -37,6 +37,29 @@ export const clients = pgTable("clients", {
   phone: text("phone"),
   city: text("city"), // Город доставки
   notes: text("notes"),
+  balance: decimal("balance", { precision: 12, scale: 2 })
+    .notNull()
+    .default("0"), // Баланс в KGS
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Операции с балансом
+export const balanceOperations = pgTable("balance_operations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clientId: uuid("client_id")
+    .references(() => clients.id)
+    .notNull(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
+  type: text("type").notNull(), // deposit / order / shipping / commission / manual
+  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(), // +/- в KGS
+  description: text("description"),
+  referenceId: uuid("reference_id"), // id заказа/отправки
+  amountForeign: decimal("amount_foreign", { precision: 12, scale: 2 }), // только для deposit
+  currencyCode: text("currency_code"), // только для deposit
+  rateReal: decimal("rate_real", { precision: 10, scale: 4 }), // только для deposit
+  rateClient: decimal("rate_client", { precision: 10, scale: 4 }), // только для deposit
   createdAt: timestamp("created_at").defaultNow(),
 });
 

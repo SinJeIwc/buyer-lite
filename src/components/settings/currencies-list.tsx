@@ -13,7 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import {
   deleteCurrency,
   getCurrencies,
@@ -64,10 +64,8 @@ export function CurrenciesList() {
     <div className="space-y-4">
       {/* Список валют */}
       {isLoadingList ? (
-        <div className="space-y-2">
-          {[1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-16 w-full rounded-lg" />
-          ))}
+        <div className="flex justify-center py-4">
+          <Spinner />
         </div>
       ) : currencies.length === 0 ? (
         <p className="text-sm text-muted-foreground text-center py-4">
