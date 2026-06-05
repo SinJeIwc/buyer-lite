@@ -122,8 +122,8 @@ export function SuppliersList() {
         <div className="space-y-2">
           {suppliers.map((supplier) => (
             <Item key={supplier.id} variant="outline" size="xs">
-              <ItemContent className="p-4">
-                <ItemTitle className="font-medium">{supplier.name}</ItemTitle>
+              <ItemContent>
+                <ItemTitle className="font-semibold">{supplier.name}</ItemTitle>
                 <ItemDescription>
                   {supplier.location && (
                     <span className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
