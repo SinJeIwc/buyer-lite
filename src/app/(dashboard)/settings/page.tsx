@@ -1,3 +1,4 @@
+import { BackButton } from "@/components/back-button";
 import { CurrenciesAddButton } from "@/components/settings/currencies/currencies-add-button";
 import { CurrenciesList } from "@/components/settings/currencies-list";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -5,12 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function SettingsPage() {
   return (
-    <div className="p-4 space-y-6">
-      <div>
+    <>
+      <div className="flex items-center">
+        <BackButton />
         <h1 className="text-2xl font-bold">Настройки</h1>
-        <p className="text-muted-foreground">
-          Управление справочниками и настройками приложения
-        </p>
       </div>
 
       {/* Тема */}
@@ -33,6 +32,6 @@ export default function SettingsPage() {
           <CurrenciesList />
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

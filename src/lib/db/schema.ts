@@ -32,9 +32,7 @@ export const clients = pgTable("clients", {
   id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   phone: text("phone"),
-  telegram: text("telegram"),
   city: text("city"), // Город доставки
-  defaultCurrencyCode: text("default_currency_code"), // Код валюты (RUB, KGS и т.д.)
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
 });

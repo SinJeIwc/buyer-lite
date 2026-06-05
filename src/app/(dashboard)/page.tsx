@@ -33,7 +33,7 @@ export default async function DashboardPage() {
   const stats = await getStats();
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="space-y-6">
       {/* Приветствие */}
       <div>
         <h1 className="text-2xl font-bold">
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
         <h2 className="text-lg font-semibold mb-3">Быстрые действия</h2>
         <div className="grid grid-cols-2 gap-3">
           <Link
-            href="/clients/new"
+            href="/clients"
             className="bg-primary text-primary-foreground rounded-xl p-4 text-center font-medium hover:opacity-90 transition-opacity"
           >
             + Клиент
