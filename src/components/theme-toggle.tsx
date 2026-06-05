@@ -12,7 +12,7 @@ export function ThemeToggle() {
       <Button
         variant="outline"
         onClick={() => setTheme("light")}
-        className="flex-1"
+        className="flex-1 dark:bg-accent"
       >
         <SunIcon className="text-yellow-400 dark:text-foreground" />
         Светлая
@@ -20,7 +20,7 @@ export function ThemeToggle() {
       <Button
         variant="outline"
         onClick={() => setTheme("dark")}
-        className="flex-1"
+        className="flex-1 bg-accent "
       >
         <MoonIcon className="text-foreground dark:text-blue-400" />
         Тёмная

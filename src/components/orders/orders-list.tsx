@@ -1,29 +1,21 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { DeleteDialog } from "@/components/ui/delete-dialog";
+import { IsLoading } from "@/components/ui/is-loading";
+import { LengthZero } from "@/components/ui/length-zero";
 import { deleteOrder, getOrders, updateOrderStatus } from "@/server/orders";
 import { OrderCard } from "./order-card";
 import { OrderFormDialog } from "./order-form-dialog";
 
 interface OrderItem {
   id: string;
-  itemTypeName: string | null;
+  name: string | null;
   quantity: number;
   purchasePrice: string;
   clientPrice: string;
-  name: string | null;
 }
 
 interface Order {
@@ -35,7 +27,6 @@ interface Order {
   status: string;
   items: OrderItem[];
   itemsCount: number;
-  totalPurchase: number;
   totalClient: number;
   createdAt: Date | null;
 }
@@ -73,26 +64,20 @@ export function OrdersList() {
   }
 
   return (
-    <div className="space-y-4">
+    <>
       {/* Кнопка добавления */}
-      <div className="flex justify-end">
-        <Button onClick={() => setFormOpen(true)}>+ Заказ</Button>
-      </div>
+      <Button onClick={() => setFormOpen(true)} className="w-full">
+        <Plus />
+        Заказ
+      </Button>
 
       {/* Список заказов */}
       {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Spinner className="w-8 h-8" />
-        </div>
+        <IsLoading />
       ) : orders.length === 0 ? (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">Пока нет заказов</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Нажмите "+ Заказ" чтобы создать первый
-          </p>
-        </div>
+        <LengthZero />
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {orders.map((order) => (
             <OrderCard
               key={order.id}
@@ -112,25 +97,13 @@ export function OrdersList() {
       />
 
       {/* Подтверждение удаления */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Удалить заказ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Это действие нельзя отменить. Все товары в заказе будут удалены.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Удалить
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+      <DeleteDialog
+        open={!!deleteId}
+        onOpenChange={() => setDeleteId(null)}
+        onConfirm={handleDelete}
+        title="Удалить заказ?"
+        description="Все товары в заказе будут удалены. Это действие нельзя отменить."
+      />
+    </>
   );
 }

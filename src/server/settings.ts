@@ -40,9 +40,13 @@ export async function getSuppliers() {
 }
 
 export async function addSupplier(name: string, location: string | null) {
-  await db.insert(suppliers).values({ name, location });
+  const [supplier] = await db
+    .insert(suppliers)
+    .values({ name, location })
+    .returning();
   revalidatePath("/settings");
   revalidatePath("/suppliers");
+  return supplier;
 }
 
 export async function updateSupplier(

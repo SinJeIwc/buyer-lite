@@ -3,13 +3,7 @@
 import { and, desc, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import {
-  clients,
-  itemTypes,
-  orderItems,
-  orders,
-  suppliers,
-} from "@/lib/db/schema";
+import { clients, orderItems, orders, suppliers } from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
 async function getCurrentUserId(): Promise<string> {
@@ -52,22 +46,14 @@ export async function getOrders() {
       const items = await db
         .select({
           id: orderItems.id,
-          itemTypeId: orderItems.itemTypeId,
-          itemTypeName: itemTypes.name,
-          externalId: orderItems.externalId,
+          name: orderItems.name,
           quantity: orderItems.quantity,
           purchasePrice: orderItems.purchasePrice,
           clientPrice: orderItems.clientPrice,
-          name: orderItems.name,
         })
         .from(orderItems)
-        .leftJoin(itemTypes, eq(orderItems.itemTypeId, itemTypes.id))
         .where(eq(orderItems.orderId, order.id));
 
-      const totalPurchase = items.reduce(
-        (sum, item) => sum + parseFloat(item.purchasePrice) * item.quantity,
-        0,
-      );
       const totalClient = items.reduce(
         (sum, item) => sum + parseFloat(item.clientPrice) * item.quantity,
         0,
@@ -76,7 +62,6 @@ export async function getOrders() {
       return {
         ...order,
         items,
-        totalPurchase,
         totalClient,
         itemsCount: items.reduce((sum, item) => sum + item.quantity, 0),
       };
@@ -86,77 +71,57 @@ export async function getOrders() {
   return ordersWithItems;
 }
 
-// ==================== Получить заказ ====================
-
-export async function getOrder(id: string) {
-  const userId = await getCurrentUserId();
-
-  const [order] = await db
-    .select({
-      id: orders.id,
-      clientId: orders.clientId,
-      supplierId: orders.supplierId,
-      status: orders.status,
-      createdAt: orders.createdAt,
-    })
-    .from(orders)
-    .where(and(eq(orders.id, id), eq(orders.userId, userId)));
-
-  if (!order) return null;
-
-  const items = await db
-    .select({
-      id: orderItems.id,
-      itemTypeId: orderItems.itemTypeId,
-      itemTypeName: itemTypes.name,
-      externalId: orderItems.externalId,
-      quantity: orderItems.quantity,
-      purchasePrice: orderItems.purchasePrice,
-      clientPrice: orderItems.clientPrice,
-      name: orderItems.name,
-    })
-    .from(orderItems)
-    .leftJoin(itemTypes, eq(orderItems.itemTypeId, itemTypes.id))
-    .where(eq(orderItems.orderId, order.id));
-
-  return { ...order, items };
-}
-
 // ==================== Создать заказ ====================
 
 export interface OrderItemData {
-  itemTypeId: string;
-  externalId?: string;
+  name: string;
   quantity: number;
   purchasePrice: number;
   clientPrice: number;
-  name?: string;
 }
 
 export interface CreateOrderData {
-  clientId: string;
-  supplierId: string;
+  clientName: string;
+  supplierName: string;
   items: OrderItemData[];
 }
 
 export async function createOrder(data: CreateOrderData) {
   const userId = await getCurrentUserId();
 
-  // Проверяем что клиент и поставщик принадлежат пользователю
-  const [client] = await db
+  // Ищем или создаём клиента
+  let [client] = await db
     .select({ id: clients.id })
     .from(clients)
-    .where(and(eq(clients.id, data.clientId), eq(clients.userId, userId)));
+    .where(and(eq(clients.userId, userId), eq(clients.name, data.clientName)));
 
-  if (!client) throw new Error("Клиент не найден");
+  if (!client) {
+    [client] = await db
+      .insert(clients)
+      .values({ userId, name: data.clientName })
+      .returning();
+  }
+
+  // Ищем или создаём поставщика
+  let [supplier] = await db
+    .select({ id: suppliers.id })
+    .from(suppliers)
+    .where(eq(suppliers.name, data.supplierName));
+
+  if (!supplier) {
+    [supplier] = await db
+      .insert(suppliers)
+      .values({ name: data.supplierName })
+      .returning();
+  }
 
   // Создаём заказ
   const [order] = await db
     .insert(orders)
     .values({
-      clientId: data.clientId,
-      supplierId: data.supplierId,
       userId,
+      clientId: client.id,
+      supplierId: supplier.id,
       status: "planned",
     })
     .returning();
@@ -166,12 +131,10 @@ export async function createOrder(data: CreateOrderData) {
     await db.insert(orderItems).values(
       data.items.map((item) => ({
         orderId: order.id,
-        itemTypeId: item.itemTypeId,
-        externalId: item.externalId || null,
+        name: item.name,
         quantity: item.quantity,
         purchasePrice: item.purchasePrice.toFixed(2),
         clientPrice: item.clientPrice.toFixed(2),
-        name: item.name || null,
       })),
     );
   }

@@ -1,10 +1,14 @@
-import { OrdersList } from "@/components/orders/orders-list";
+import { BackButton } from "@/components/back-button";
+import { OrdersTabs } from "@/components/orders/orders-tabs";
 
 export default function OrdersPage() {
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Заказы</h1>
-      <OrdersList />
-    </div>
+    <>
+      <div className="flex items-center mb-1">
+        <BackButton />
+        <h1 className="text-2xl font-bold">Заказы</h1>
+      </div>
+      <OrdersTabs />
+    </>
   );
 }

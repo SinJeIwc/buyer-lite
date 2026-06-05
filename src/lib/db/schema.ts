@@ -86,9 +86,7 @@ export const orderItems = pgTable("order_items", {
   orderId: uuid("order_id")
     .references(() => orders.id)
     .notNull(),
-  itemTypeId: uuid("item_type_id")
-    .references(() => itemTypes.id)
-    .notNull(),
+  itemTypeId: uuid("item_type_id").references(() => itemTypes.id),
   externalId: text("external_id"), // ID у поставщика
   quantity: integer("quantity").notNull(),
   purchasePrice: decimal("purchase_price", {
@@ -96,7 +94,7 @@ export const orderItems = pgTable("order_items", {
     scale: 2,
   }).notNull(), // Реальная цена в KGS
   clientPrice: decimal("client_price", { precision: 10, scale: 2 }).notNull(), // Цена для клиента в KGS
-  name: text("name"), // Опциональное название
+  name: text("name"), // Название товара
   size: text("size"), // Опционально
   color: text("color"), // Опционально
   notes: text("notes"),
@@ -126,6 +124,43 @@ export const shipmentItems = pgTable("shipment_items", {
     .references(() => orderItems.id)
     .notNull(),
   quantity: integer("quantity").notNull(), // Может быть часть от общего количества
+});
+
+// Товары от поставщика (не оплачены)
+export const supplierItems = pgTable("supplier_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
+  supplierId: uuid("supplier_id")
+    .references(() => suppliers.id)
+    .notNull(),
+  name: text("name").notNull(), // "ADE25 юбка синяя"
+  quantity: integer("quantity").notNull(),
+  purchasePrice: decimal("purchase_price", {
+    precision: 10,
+    scale: 2,
+  }).notNull(), // Цена за штуку в KGS
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Склад (оплаченные товары, только количество)
+export const storageItems = pgTable("storage_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
+  clientId: uuid("client_id")
+    .references(() => clients.id)
+    .notNull(),
+  supplierId: uuid("supplier_id")
+    .references(() => suppliers.id)
+    .notNull(),
+  name: text("name").notNull(), // "ADE25 юбка синяя"
+  quantity: integer("quantity").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Операции обмена валюты

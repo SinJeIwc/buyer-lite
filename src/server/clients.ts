@@ -63,14 +63,18 @@ export async function getClient(id: string) {
 export async function addClient(data: ClientFormData) {
   const userId = await getCurrentUserId();
 
-  await db.insert(clients).values({
-    userId,
-    name: data.name,
-    phone: data.phone || null,
-    city: data.city || null,
-    notes: data.notes || null,
-  });
+  const [client] = await db
+    .insert(clients)
+    .values({
+      userId,
+      name: data.name,
+      phone: data.phone || null,
+      city: data.city || null,
+      notes: data.notes || null,
+    })
+    .returning();
   revalidatePath("/clients");
+  return client;
 }
 
 export async function updateClient(id: string, data: ClientFormData) {

@@ -3,14 +3,20 @@
 import { Send, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from "@/components/ui/item";
 
 interface OrderItem {
   id: string;
-  itemTypeName: string | null;
+  name: string | null;
   quantity: number;
   purchasePrice: string;
   clientPrice: string;
-  name: string | null;
 }
 
 interface OrderCardProps {
@@ -55,71 +61,70 @@ export function OrderCard({
   };
 
   return (
-    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-      {/* Шапка */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <h3 className="font-medium">{clientName}</h3>
-            <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            {supplierName} • {itemsCount} шт
-          </p>
-        </div>
-        <div className="flex items-center gap-1">
-          {status === "ready" && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-blue-500 hover:text-blue-600"
-              onClick={() => onShip(id)}
-            >
-              <Send className="w-4 h-4" />
-            </Button>
-          )}
+    <Item variant="outline" size="xs">
+      <ItemContent className="p-4">
+        <ItemTitle className="font-medium">
+          {clientName || "Без имени"}
+        </ItemTitle>
+        <ItemDescription>
+          <span className="block space-y-1">
+            <span className="text-sm text-muted-foreground">
+              {supplierName || "Без поставщика"} • {itemsCount} шт
+            </span>
+            {items.length > 0 && (
+              <span className="block space-y-0.5">
+                {items.slice(0, 2).map((item) => (
+                  <span
+                    key={item.id}
+                    className="flex justify-between text-sm text-muted-foreground"
+                  >
+                    <span>
+                      {item.name || "Товар"} × {item.quantity}
+                    </span>
+                    <span>
+                      {(
+                        parseFloat(item.clientPrice) * item.quantity
+                      ).toLocaleString("ru-RU")}{" "}
+                      с
+                    </span>
+                  </span>
+                ))}
+                {items.length > 2 && (
+                  <span className="text-sm text-muted-foreground">
+                    и ещё {items.length - 2} товаров...
+                  </span>
+                )}
+              </span>
+            )}
+            <span className="flex items-center justify-between pt-2 border-t mt-2">
+              <Badge variant={statusInfo.variant}>{statusInfo.label}</Badge>
+              <span className="font-medium">
+                {totalClient.toLocaleString("ru-RU")} с
+              </span>
+            </span>
+          </span>
+        </ItemDescription>
+      </ItemContent>
+      <ItemActions>
+        {status === "ready" && (
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
-            onClick={() => onDelete(id)}
+            className="h-8 w-8 text-blue-500 hover:text-blue-600"
+            onClick={() => onShip(id)}
           >
-            <Trash2 className="w-4 h-4" />
+            <Send className="w-4 h-4" />
           </Button>
-        </div>
-      </div>
-
-      {/* Товары */}
-      {items.length > 0 && (
-        <div className="space-y-1">
-          {items.slice(0, 3).map((item) => (
-            <div key={item.id} className="flex justify-between text-sm">
-              <span className="text-muted-foreground">
-                {item.itemTypeName || item.name} × {item.quantity}
-              </span>
-              <span>
-                {(parseFloat(item.clientPrice) * item.quantity).toLocaleString(
-                  "ru-RU",
-                )}{" "}
-                с
-              </span>
-            </div>
-          ))}
-          {items.length > 3 && (
-            <p className="text-sm text-muted-foreground">
-              и ещё {items.length - 3} товаров...
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Итого */}
-      <div className="pt-2 border-t flex justify-between text-sm">
-        <span className="text-muted-foreground">Итого для клиента:</span>
-        <span className="font-medium">
-          {totalClient.toLocaleString("ru-RU")} с
-        </span>
-      </div>
-    </div>
+        )}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-destructive hover:text-destructive"
+          onClick={() => onDelete(id)}
+        >
+          <Trash2 className="w-4 h-4" />
+        </Button>
+      </ItemActions>
+    </Item>
   );
 }

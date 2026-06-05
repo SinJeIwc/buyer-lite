@@ -1,7 +1,14 @@
 "use client";
 
-import { MapPin, Pencil, PhoneIcon, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import {
+  MapPin,
+  Pencil,
+  PhoneIcon,
+  Plus,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/ui/delete-dialog";
 import { IsLoading } from "@/components/ui/is-loading";
@@ -15,7 +22,8 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { LengthZero } from "@/components/ui/length-zero";
-import { deleteClient, getClients } from "@/server/clients";
+import { deleteClient } from "@/server/clients";
+import { useClientsStore } from "@/stores/clients-store";
 import { BalanceButton } from "./balance/balance-button";
 import { ClientFormDialog } from "./client-form-dialog";
 
@@ -29,31 +37,23 @@ interface Client {
 }
 
 export function ClientsList() {
-  const [clients, setClients] = useState<Client[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const clients = useClientsStore((s) => s.clients);
+  const isLoading = useClientsStore((s) => s.isLoading);
+  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const refresh = useClientsStore((s) => s.refresh);
   const [formOpen, setFormOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const loadClients = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getClients();
-      setClients(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    loadClients();
-  }, [loadClients]);
+    fetchClients();
+  }, [fetchClients]);
 
   async function handleDelete() {
     if (!deleteId) return;
     await deleteClient(deleteId);
     setDeleteId(null);
-    await loadClients();
+    await refresh();
   }
 
   function handleEdit(client: Client) {
@@ -78,11 +78,21 @@ export function ClientsList() {
 
   return (
     <>
-      {/* Кнопка добавления */}
-      <Button onClick={handleAdd} className="w-full">
-        <Plus />
-        Клиент
-      </Button>
+      {/* Кнопки */}
+      <div className="flex gap-2">
+        <Button onClick={handleAdd} className="flex-1">
+          <Plus className="w-4 h-4 mr-1" />
+          Клиент
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={refresh}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+        </Button>
+      </div>
 
       {/* Список клиентов */}
       {isLoading ? (
@@ -112,7 +122,6 @@ export function ClientsList() {
                 </ItemDescription>
               </ItemContent>
               <ItemActions>
-                {/*<BalanceButton clientId={client.id} onSuccess={loadClients} />*/}
                 <Button
                   variant="ghost"
                   size="icon"
@@ -142,7 +151,7 @@ export function ClientsList() {
                 >
                   {formatBalance(client.balance)} с
                 </span>
-                <BalanceButton clientId={client.id} onSuccess={loadClients} />
+                <BalanceButton clientId={client.id} onSuccess={refresh} />
               </ItemFooter>
             </Item>
           ))}
@@ -154,7 +163,7 @@ export function ClientsList() {
         open={formOpen}
         onOpenChange={handleFormClose}
         client={editClient}
-        onSuccess={loadClients}
+        onSuccess={() => refresh()}
       />
 
       {/* Подтверждение удаления */}

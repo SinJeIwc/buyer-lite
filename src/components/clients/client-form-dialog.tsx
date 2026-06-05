@@ -27,7 +27,7 @@ interface ClientFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   client?: Client | null;
-  onSuccess: () => void;
+  onSuccess: (newClient?: { id: string; name: string }) => void;
 }
 
 export function ClientFormDialog({
@@ -68,11 +68,12 @@ export function ClientFormDialog({
     try {
       if (isEditing && client) {
         await updateClient(client.id, formData);
+        onSuccess();
       } else {
-        await addClient(formData);
+        const result = await addClient(formData);
+        onSuccess(result);
       }
       onOpenChange(false);
-      onSuccess();
     } finally {
       setIsLoading(false);
     }

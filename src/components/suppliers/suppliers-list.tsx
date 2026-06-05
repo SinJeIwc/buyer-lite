@@ -1,18 +1,9 @@
 "use client";
 
-import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { MapPin, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/ui/delete-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Field, FieldGroup } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { IsLoading } from "@/components/ui/is-loading";
 import {
   Item,
@@ -21,14 +12,10 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
-import { Label } from "@/components/ui/label";
 import { LengthZero } from "@/components/ui/length-zero";
-import {
-  addSupplier,
-  deleteSupplier,
-  getSuppliers,
-  updateSupplier,
-} from "@/server/settings";
+import { deleteSupplier } from "@/server/settings";
+import { useSuppliersStore } from "@/stores/suppliers-store";
+import { SupplierFormDialog } from "./supplier-form-dialog";
 
 interface Supplier {
   id: string;
@@ -37,81 +24,57 @@ interface Supplier {
 }
 
 export function SuppliersList() {
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const suppliers = useSuppliersStore((s) => s.suppliers);
+  const isLoading = useSuppliersStore((s) => s.isLoading);
+  const fetchSuppliers = useSuppliersStore((s) => s.fetchSuppliers);
+  const refresh = useSuppliersStore((s) => s.refresh);
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState<Supplier | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [name, setName] = useState("");
-  const [location, setLocation] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-
-  const loadSuppliers = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await getSuppliers();
-      setSuppliers(data);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
-    loadSuppliers();
-  }, [loadSuppliers]);
+    fetchSuppliers();
+  }, [fetchSuppliers]);
 
   function handleAdd() {
     setEditData(null);
-    setName("");
-    setLocation("");
     setFormOpen(true);
   }
 
   function handleEdit(supplier: Supplier) {
-    // Берём данные из уже загруженного списка, без повторного запроса
     setEditData(supplier);
-    setName(supplier.name);
-    setLocation(supplier.location || "");
     setFormOpen(true);
   }
 
   function handleClose() {
     setFormOpen(false);
     setEditData(null);
-    setName("");
-    setLocation("");
-  }
-
-  async function handleSave() {
-    if (!name.trim()) return;
-    setIsSaving(true);
-    try {
-      if (editData) {
-        await updateSupplier(editData.id, name.trim(), location.trim() || null);
-      } else {
-        await addSupplier(name.trim(), location.trim() || null);
-      }
-      handleClose();
-      await loadSuppliers();
-    } finally {
-      setIsSaving(false);
-    }
   }
 
   async function handleDelete() {
     if (!deleteId) return;
     await deleteSupplier(deleteId);
     setDeleteId(null);
-    await loadSuppliers();
+    await refresh();
   }
 
   return (
     <>
-      {/* Кнопка добавления */}
-      <Button onClick={handleAdd} className="w-full">
-        <Plus />
-        Поставщик
-      </Button>
+      {/* Кнопки */}
+      <div className="flex gap-2">
+        <Button onClick={handleAdd} className="flex-1">
+          <Plus className="w-4 h-4 mr-1" />
+          Поставщик
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={refresh}
+          disabled={isLoading}
+        >
+          <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+        </Button>
+      </div>
 
       {/* Список */}
       {isLoading ? (
@@ -122,8 +85,8 @@ export function SuppliersList() {
         <div className="space-y-2">
           {suppliers.map((supplier) => (
             <Item key={supplier.id} variant="outline" size="xs">
-              <ItemContent>
-                <ItemTitle className="font-semibold">{supplier.name}</ItemTitle>
+              <ItemContent className="p-4">
+                <ItemTitle className="font-medium">{supplier.name}</ItemTitle>
                 <ItemDescription>
                   {supplier.location && (
                     <span className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
@@ -157,57 +120,12 @@ export function SuppliersList() {
       )}
 
       {/* Модалка добавления/редактирования */}
-      <Dialog open={formOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-sm">
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-            className="flex flex-col gap-4"
-          >
-            <DialogHeader>
-              <DialogTitle>
-                {editData ? "Редактировать поставщика" : "Новый поставщик"}
-              </DialogTitle>
-            </DialogHeader>
-            <FieldGroup>
-              <Field>
-                <Label htmlFor="supplier-name">
-                  Название <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="supplier-name"
-                  name="name"
-                  placeholder="Поставщик"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  required
-                />
-              </Field>
-              <Field>
-                <Label htmlFor="supplier-location">Местоположение</Label>
-                <Input
-                  id="supplier-location"
-                  name="location"
-                  placeholder="Север-2"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                />
-              </Field>
-            </FieldGroup>
-            <DialogFooter>
-              <Button type="submit" disabled={isSaving || !name.trim()}>
-                {isSaving
-                  ? "Сохранение..."
-                  : editData
-                    ? "Сохранить"
-                    : "Добавить"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <SupplierFormDialog
+        open={formOpen}
+        onOpenChange={handleClose}
+        supplier={editData}
+        onSuccess={() => refresh()}
+      />
 
       {/* Подтверждение удаления */}
       <DeleteDialog
