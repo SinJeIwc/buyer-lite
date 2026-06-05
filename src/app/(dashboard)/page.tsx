@@ -84,10 +84,10 @@ export default async function DashboardPage() {
             + Клиент
           </Link>
           <Link
-            href="/orders/new"
+            href="/suppliers"
             className="bg-primary text-primary-foreground rounded-xl p-4 text-center font-medium hover:opacity-90 transition-opacity"
           >
-            + Заказ
+            Поставщики
           </Link>
         </div>
       </div>

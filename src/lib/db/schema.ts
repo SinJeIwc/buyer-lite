@@ -66,6 +66,9 @@ export const balanceOperations = pgTable("balance_operations", {
 // Заказы (от поставщика)
 export const orders = pgTable("orders", {
   id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
   clientId: uuid("client_id")
     .references(() => clients.id)
     .notNull(),

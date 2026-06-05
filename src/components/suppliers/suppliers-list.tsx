@@ -13,15 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Field, FieldGroup } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  addSupplier,
-  deleteSupplier,
-  getSuppliers,
-  updateSupplier,
-} from "@/server/settings";
 import { IsLoading } from "@/components/ui/is-loading";
-import { LengthZero } from "@/components/ui/length-zero";
 import {
   Item,
   ItemActions,
@@ -29,6 +21,14 @@ import {
   ItemDescription,
   ItemTitle,
 } from "@/components/ui/item";
+import { Label } from "@/components/ui/label";
+import { LengthZero } from "@/components/ui/length-zero";
+import {
+  addSupplier,
+  deleteSupplier,
+  getSuppliers,
+  updateSupplier,
+} from "@/server/settings";
 
 interface Supplier {
   id: string;
@@ -158,13 +158,14 @@ export function SuppliersList() {
 
       {/* Модалка добавления/редактирования */}
       <Dialog open={formOpen} onOpenChange={handleClose}>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSave();
-          }}
-        >
-          <DialogContent className="sm:max-w-sm">
+        <DialogContent className="sm:max-w-sm">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+            className="flex flex-col gap-4"
+          >
             <DialogHeader>
               <DialogTitle>
                 {editData ? "Редактировать поставщика" : "Новый поставщик"}
@@ -204,8 +205,8 @@ export function SuppliersList() {
                     : "Добавить"}
               </Button>
             </DialogFooter>
-          </DialogContent>
-        </form>
+          </form>
+        </DialogContent>
       </Dialog>
 
       {/* Подтверждение удаления */}

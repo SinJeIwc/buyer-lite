@@ -108,8 +108,8 @@ export function ClientFormDialog({
               Загрузка...
             </div>
           ) : (
-            <FieldGroup>
-              <Field>
+            <FieldGroup className="gap-4">
+              <Field className="gap-2">
                 <Label htmlFor="client-name">Имя *</Label>
                 <Input
                   id="client-name"
@@ -122,7 +122,7 @@ export function ClientFormDialog({
                   required
                 />
               </Field>
-              <Field>
+              <Field className="gap-2">
                 <Label htmlFor="client-phone">Номер телефона</Label>
                 <Input
                   id="client-phone"
@@ -135,7 +135,7 @@ export function ClientFormDialog({
                   }
                 />
               </Field>
-              <Field>
+              <Field className="gap-2">
                 <Label htmlFor="client-city">Город</Label>
                 <Input
                   id="client-city"
@@ -147,7 +147,7 @@ export function ClientFormDialog({
                   }
                 />
               </Field>
-              <Field>
+              <Field className="gap-2">
                 <Label htmlFor="client-notes">Заметки</Label>
                 <Textarea
                   id="client-notes"

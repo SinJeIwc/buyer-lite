@@ -42,11 +42,26 @@ export async function getSuppliers() {
 export async function addSupplier(name: string, location: string | null) {
   await db.insert(suppliers).values({ name, location });
   revalidatePath("/settings");
+  revalidatePath("/suppliers");
+}
+
+export async function updateSupplier(
+  id: string,
+  name: string,
+  location: string | null,
+) {
+  await db
+    .update(suppliers)
+    .set({ name, location })
+    .where(eq(suppliers.id, id));
+  revalidatePath("/settings");
+  revalidatePath("/suppliers");
 }
 
 export async function deleteSupplier(id: string) {
   await db.delete(suppliers).where(eq(suppliers.id, id));
   revalidatePath("/settings");
+  revalidatePath("/suppliers");
 }
 
 // ==================== Типы товаров ====================

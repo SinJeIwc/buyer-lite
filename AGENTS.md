@@ -1,129 +1,140 @@
 # Buyer Lite — Agent Instructions
 
-## Проект
+## Project
 
-Система учёта для байера, работающего на Дордое (КР). PWA приложение для мобильных устройств (Samsung).
+Accounting and order management system for a buyer working at Dordoi Market (Kyrgyzstan). A PWA application designed for mobile devices (Samsung).
 
-**Основной пользователь:** байер, 52 года. UI должен быть максимально простым и понятным.
+**Primary user:** a 52-year-old buyer. The UI must be as simple and intuitive as possible.
 
-## Технологии
+## Technology Stack
 
-| Технология | Назначение |
-|------------|------------|
-| Next.js 16 | Фреймворк (App Router) |
-| Supabase | PostgreSQL база + Auth |
-| Drizzle ORM | Запросы к БД |
-| shadcn/ui | UI компоненты |
-| Tailwind CSS 4 | Стили |
-| Zod | Валидация |
-| Zustand | Клиентский стейт |
-| react-hook-form | Формы |
-| @react-pdf/renderer | PDF отчёты |
+| Technology          | Purpose                      |
+| ------------------- | ---------------------------- |
+| Next.js 16          | Framework (App Router)       |
+| Supabase            | PostgreSQL database + Auth   |
+| Drizzle ORM         | Database queries             |
+| shadcn/ui           | UI components                |
+| Tailwind CSS 4      | Styling                      |
+| Zod                 | Validation                   |
+| Zustand             | Client-side state management |
+| react-hook-form     | Forms                        |
+| @react-pdf/renderer | PDF reports                  |
 
-## Структура проекта
+## Project Structure
 
-```
+```text
 src/
 ├── app/                    # Next.js App Router
-│   ├── (auth)/            # Страницы авторизации
-│   ├── (dashboard)/       # Основные страницы
+│   ├── (auth)/            # Authentication pages
+│   ├── (dashboard)/       # Main application pages
 │   └── layout.tsx
 ├── components/
-│   ├── ui/                # shadcn компоненты
-│   ├── forms/             # Формы
-│   └── tables/            # Таблицы
+│   ├── ui/                # shadcn components
+│   ├── forms/             # Forms
+│   └── tables/            # Tables
 ├── lib/
-│   ├── db/                # Drizzle схема и подключение
-│   ├── supabase/          # Supabase клиенты
+│   ├── db/                # Drizzle schema and database connection
+│   ├── supabase/          # Supabase clients
 │   └── utils.ts
 ├── server/                # Server Actions
 ├── stores/                # Zustand stores
-└── middleware.ts           # Auth middleware
+└── middleware.ts          # Auth middleware
 ```
 
-## База данных
+## Database
 
-**11 таблиц:**
-- `currencies` — валюты (RUB, KGS, USD, EUR + кастомные)
-- `suppliers` — поставщики (точки на Дордое)
-- `item_types` — типы товаров
-- `clients` — клиенты
-- `orders` — заказы у поставщиков
-- `order_items` — товары в заказе
-- `shipments` — отправки (карго)
-- `shipment_items` — товары в отправке
-- `exchange_operations` — операции обмена валюты
-- `balance_transactions` — история баланса клиентов
-- `user_profiles` — профили пользователей (байеров)
+**11 tables:**
 
-**Подключение:** Transaction pooler через postgres.js
+* `currencies` — currencies (RUB, KGS, USD, EUR + custom currencies)
+* `suppliers` — suppliers (market stalls at Dordoi)
+* `item_types` — item categories
+* `clients` — clients
+* `orders` — supplier orders
+* `order_items` — items within orders
+* `shipments` — shipments (cargo deliveries)
+* `shipment_items` — items within shipments
+* `exchange_operations` — currency exchange operations
+* `balance_transactions` — client balance history
+* `user_profiles` — user profiles (buyers)
 
-## Авторизация
+**Connection:** Transaction pooler via postgres.js
 
-- **Supabase Auth** (email/password)
-- Роли: `admin` (создаёт пользователей), `buyer` (работает с клиентами)
-- Middleware редиректит на `/auth/login` если не авторизован
-- **Регистрация отключена** — только админ может создавать пользователей через Admin API
-- Display Name хранится в `user.user_metadata.display_name`
+## Authentication
 
-## Тестовые пользователи
+* **Supabase Auth** (email/password)
+* Roles: `admin` (creates users), `buyer` (manages clients and orders)
+* Middleware redirects to `/auth/login` if the user is not authenticated
+* **Registration is disabled** — only admins can create users through the Admin API
+* Display Name is stored in `user.user_metadata.display_name`
 
-| Email | Пароль | Роль | Display Name |
-|-------|--------|------|---------------|
-| test@buyer.lite | 123 | admin | Тестовый Байер |
-| buyer@buyer.lite | 123 | buyer | Байер |
+## Test Users
 
-## Ключевые бизнес-правила
+| Email                                       | Password | Role  | Display Name |
+| ------------------------------------------- | -------- | ----- | ------------ |
+| [test@buyer.lite](mailto:test@buyer.lite)   | 123      | admin | Test Buyer   |
+| [buyer@buyer.lite](mailto:buyer@buyer.lite) | 123      | buyer | Buyer        |
 
-1. **Курсовой спред** — разница между реальным курсом и курсом для клиента (скрытая маржа)
-2. **Товарная маржа** — разница между ценой закупки и ценой для клиента
-3. **Комиссия байера** — 5% от цены товара для клиента
-4. **Валюты** — по дефолту RUB + KGS, можно создать новые в настройках
-5. **Фото товаров** — не используются
+## Key Business Rules
 
-## Документация
+1. **Exchange spread** — the difference between the real exchange rate and the rate offered to the client (hidden margin)
+2. **Product margin** — the difference between the purchase price and the client price
+3. **Buyer commission** — 5% of the client-facing product price
+4. **Currencies** — RUB and KGS are available by default; additional currencies can be created in Settings
+5. **Product photos** — not used
 
-- `docs/FLOW.md` — бизнес-процесс и флоу
-- `docs/TECH.md` — технологии и архитектура
-- `docs/TERMINOLOGY.md` — терминология
+## Documentation
 
-## Скилы
+* `docs/FLOW.md` — business process and user flows
+* `docs/TECH.md` — technology stack and architecture
+* `docs/TERMINOLOGY.md` — project terminology
 
-- `.agents/skills/supabase/` — лучшие практики Supabase
-- `.agents/skills/supabase-postgres-best-practices/` — оптимизация PostgreSQL
+## Skills
 
-## Компоненты Supabase (shadcn)
+* `.agents/skills/supabase/` — Supabase best practices
+* `.agents/skills/supabase-postgres-best-practices/` — PostgreSQL optimization guidelines
 
-Установлены через `npx shadcn@latest add @supabase/...`:
-- `@supabase/password-based-auth-nextjs` — компоненты авторизации
+## Supabase Components (shadcn)
 
-Доступные для установки:
-- `@supabase/current-user-avatar-nextjs` — аватар пользователя
-- `@supabase/dropzone-nextjs` — загрузка файлов (Storage)
-
-## Стиль кода
-
-- Функциональные компоненты
-- Server Components по дефолту, Client только когда нужен
-- Типизация через TypeScript
-- Валидация через Zod
-- Формы через react-hook-form + @hookform/resolvers
-- UI через shadcn/ui + Tailwind
-
-## Команды
+Installed via:
 
 ```bash
-pnpm dev              # Запуск dev сервера
-pnpm build            # Билд для продакшена
-pnpm db:generate      # Генерация миграций
-pnpm db:push          # Применение миграций
-pnpm db:studio        # Drizzle Studio (просмотр БД)
-pnpm lint             # Проверка кода (Biome)
-pnpm format           # Форматирование кода
+npx shadcn@latest add @supabase/...
+```
+
+Installed:
+
+* `@supabase/password-based-auth-nextjs` — authentication components
+
+Available for installation:
+
+* `@supabase/current-user-avatar-nextjs` — user avatar
+* `@supabase/dropzone-nextjs` — file uploads (Storage)
+
+## Code Style
+
+* Functional components
+* Server Components by default; Client Components only when necessary
+* TypeScript for type safety
+* Zod for validation
+* Forms with react-hook-form + @hookform/resolvers
+* UI built with shadcn/ui + Tailwind CSS
+
+## Commands
+
+```bash
+pnpm dev              # Start development server
+pnpm build            # Production build
+pnpm db:generate      # Generate migrations
+pnpm db:push          # Apply migrations
+pnpm db:studio        # Drizzle Studio (database browser)
+pnpm lint             # Code quality checks (Biome)
+pnpm format           # Code formatting
 ```
 
 <!-- BEGIN:nextjs-agent-rules -->
+
 # This is NOT the Next.js you know
 
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+This version contains breaking changes — APIs, conventions, and file structure may differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Pay attention to deprecation notices.
+
 <!-- END:nextjs-agent-rules -->
