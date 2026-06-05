@@ -85,7 +85,7 @@ export function ItemSearch({
       </div>
 
       {query && filteredItems.length > 0 && (
-        <div className="border rounded-lg max-h-40 overflow-y-auto relative z-[200] bg-popover">
+        <div className="border rounded-lg max-h-40 overflow-y-auto relative z-200 bg-popover">
           {filteredItems.map((item) => (
             <button
               key={item.id}
