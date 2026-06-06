@@ -1,4 +1,5 @@
 import {
+  boolean,
   decimal,
   integer,
   jsonb,
@@ -37,6 +38,8 @@ export const clients = pgTable("clients", {
   phone: text("phone"),
   city: text("city"), // Город доставки
   notes: text("notes"),
+  isFavorite: boolean("is_favorite").notNull().default(false),
+  isBlocked: boolean("is_blocked").notNull().default(false),
   balance: decimal("balance", { precision: 12, scale: 2 })
     .notNull()
     .default("0"), // Баланс в KGS

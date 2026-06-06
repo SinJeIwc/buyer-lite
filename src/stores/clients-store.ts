@@ -7,6 +7,8 @@ export interface Client {
   phone: string | null;
   city: string | null;
   notes: string | null;
+  isFavorite: boolean;
+  isBlocked: boolean;
   balance: string;
 }
 

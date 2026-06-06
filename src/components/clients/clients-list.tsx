@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  Ban,
   MapPin,
   Pencil,
   PhoneIcon,
   Plus,
   RefreshCw,
+  Star,
   Trash2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -22,7 +24,8 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { LengthZero } from "@/components/ui/length-zero";
-import { deleteClient } from "@/server/clients";
+import { cn } from "@/lib/utils";
+import { deleteClient, toggleBlocked, toggleFavorite } from "@/server/clients";
 import { useClientsStore } from "@/stores/clients-store";
 import { BalanceButton } from "./balance/balance-button";
 import { ClientFormDialog } from "./client-form-dialog";
@@ -33,6 +36,8 @@ interface Client {
   phone: string | null;
   city: string | null;
   notes: string | null;
+  isFavorite: boolean;
+  isBlocked: boolean;
   balance: string;
 }
 
@@ -76,6 +81,16 @@ export function ClientsList() {
     return num.toLocaleString("ru-RU", { minimumFractionDigits: 0 });
   }
 
+  async function handleToggleFavorite(id: string) {
+    await toggleFavorite(id);
+    await refresh();
+  }
+
+  async function handleToggleBlocked(id: string) {
+    await toggleBlocked(id);
+    await refresh();
+  }
+
   return (
     <>
       {/* Кнопки */}
@@ -102,9 +117,16 @@ export function ClientsList() {
       ) : (
         <div className="space-y-2">
           {clients.map((client) => (
-            <Item key={client.id} variant="outline" size="xs">
+            <Item
+              key={client.id}
+              variant="outline"
+              size="xs"
+              className={cn(client.isBlocked && "opacity-50")}
+            >
               <ItemContent>
-                <ItemTitle className="font-semibold">{client.name}</ItemTitle>
+                <ItemTitle className="font-semibold flex items-center gap-1.5">
+                  {client.name}
+                </ItemTitle>
                 <ItemDescription>
                   {client.phone && (
                     <span className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
@@ -121,7 +143,37 @@ export function ClientsList() {
                   {client.notes}
                 </ItemDescription>
               </ItemContent>
-              <ItemActions>
+              <ItemActions className="grid grid-cols-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleToggleFavorite(client.id)}
+                >
+                  <Star
+                    className={cn(
+                      "w-4 h-4",
+                      client.isFavorite
+                        ? "fill-yellow-500 text-yellow-500"
+                        : "text-muted-foreground",
+                    )}
+                  />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => handleToggleBlocked(client.id)}
+                >
+                  <Ban
+                    className={cn(
+                      "w-4 h-4",
+                      client.isBlocked
+                        ? "text-destructive"
+                        : "text-muted-foreground",
+                    )}
+                  />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"

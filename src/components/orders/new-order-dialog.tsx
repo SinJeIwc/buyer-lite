@@ -87,10 +87,12 @@ export function NewOrderDialog({
     }
   }, [open, fetchClients]);
 
-  const clientItems: ClientItem[] = clientsList.map((c) => ({
-    label: c.name,
-    value: c.id,
-  }));
+  const clientItems: ClientItem[] = clientsList
+    .filter((c) => !c.isBlocked)
+    .map((c) => ({
+      label: c.name,
+      value: c.id,
+    }));
 
   function addItem() {
     setItems([

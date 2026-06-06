@@ -26,21 +26,43 @@ async function getCurrentUserId(): Promise<string> {
   return user.id;
 }
 
-export async function getClients() {
+export interface Client {
+  id: string;
+  name: string;
+  phone: string | null;
+  city: string | null;
+  notes: string | null;
+  isFavorite: boolean;
+  isBlocked: boolean;
+  balance: string;
+}
+
+export async function getClients(): Promise<Client[]> {
   const userId = await getCurrentUserId();
 
-  return await db
+  const rows = await db
     .select({
       id: clients.id,
       name: clients.name,
       phone: clients.phone,
       city: clients.city,
       notes: clients.notes,
+      isFavorite: clients.isFavorite,
+      isBlocked: clients.isBlocked,
       balance: clients.balance,
     })
     .from(clients)
     .where(eq(clients.userId, userId))
     .orderBy(clients.name);
+
+  // Сортировка: избранные первыми, заблокированные последними
+  return rows.sort((a, b) => {
+    if (a.isFavorite && !b.isFavorite) return -1;
+    if (!a.isFavorite && b.isFavorite) return 1;
+    if (a.isBlocked && !b.isBlocked) return 1;
+    if (!a.isBlocked && b.isBlocked) return -1;
+    return 0;
+  });
 }
 
 export async function getClient(id: string) {
@@ -97,6 +119,40 @@ export async function deleteClient(id: string) {
 
   await db
     .delete(clients)
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
+  revalidatePath("/clients");
+}
+
+export async function toggleFavorite(id: string) {
+  const userId = await getCurrentUserId();
+
+  const [client] = await db
+    .select({ isFavorite: clients.isFavorite })
+    .from(clients)
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
+
+  if (!client) throw new Error("Клиент не найден");
+
+  await db
+    .update(clients)
+    .set({ isFavorite: !client.isFavorite })
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
+  revalidatePath("/clients");
+}
+
+export async function toggleBlocked(id: string) {
+  const userId = await getCurrentUserId();
+
+  const [client] = await db
+    .select({ isBlocked: clients.isBlocked })
+    .from(clients)
+    .where(and(eq(clients.id, id), eq(clients.userId, userId)));
+
+  if (!client) throw new Error("Клиент не найден");
+
+  await db
+    .update(clients)
+    .set({ isBlocked: !client.isBlocked })
     .where(and(eq(clients.id, id), eq(clients.userId, userId)));
   revalidatePath("/clients");
 }

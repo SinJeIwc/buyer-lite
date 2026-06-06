@@ -21,10 +21,12 @@ export function ClientSelect({ value, onChange, disabled }: ClientSelectProps) {
   const clientsList = useClientsStore((s) => s.items);
   const isLoading = useClientsStore((s) => s.isLoading);
 
-  const items = clientsList.map((c) => ({
-    label: c.name,
-    value: c.id,
-  }));
+  const items = clientsList
+    .filter((c) => !c.isBlocked)
+    .map((c) => ({
+      label: c.name,
+      value: c.id,
+    }));
 
   return (
     <Field>
