@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, X } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ interface StoreItem {
   id: string;
   clientId: string;
   name: string;
+  size: string | null;
   quantity: number;
   purchasePrice: string;
 }
@@ -53,7 +54,7 @@ export function ItemSearch({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 relative">
       <div className="flex items-center justify-between">
         <Label>Товары</Label>
         <Button
@@ -80,31 +81,47 @@ export function ItemSearch({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           disabled={disabled || !hasItems}
-          className="pl-9"
+          className="pl-9 pr-8"
         />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+
+        {query && filteredItems.length > 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 border rounded-lg max-h-40 overflow-y-auto z-50 bg-popover shadow-md">
+            {filteredItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className="w-full text-left px-3 py-2 hover:bg-muted/50 text-sm flex justify-between items-center"
+                onClick={() => handleSelect(item)}
+              >
+                <div className="truncate">
+                  <span>{item.name}</span>
+                  {item.size && (
+                    <span className="text-muted-foreground ml-1">({item.size})</span>
+                  )}
+                </div>
+                <span className="text-muted-foreground shrink-0 ml-2">
+                  {item.quantity}шт
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {query && filteredItems.length === 0 && (
+          <div className="absolute left-0 right-0 top-full mt-1 border rounded-lg z-50 bg-popover shadow-md">
+            <p className="px-3 py-2 text-sm text-muted-foreground">Товары не найдены</p>
+          </div>
+        )}
       </div>
-
-      {query && filteredItems.length > 0 && (
-        <div className="border rounded-lg max-h-40 overflow-y-auto relative z-200 bg-popover">
-          {filteredItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="w-full text-left px-3 py-2 hover:bg-muted/50 text-sm flex justify-between items-center"
-              onClick={() => handleSelect(item)}
-            >
-              <span className="truncate">{item.name}</span>
-              <span className="text-muted-foreground shrink-0 ml-2">
-                {item.quantity}шт
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {query && filteredItems.length === 0 && (
-        <p className="text-sm text-muted-foreground">Товары не найдены</p>
-      )}
     </div>
   );
 }

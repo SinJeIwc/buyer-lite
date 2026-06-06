@@ -70,6 +70,7 @@ export function PayDialog({
     (item: {
       id: string;
       name: string;
+      size: string | null;
       quantity: number;
       purchasePrice: string;
     }) => {
@@ -80,6 +81,7 @@ export function PayDialog({
           supplierItemId: item.id,
           isNew: false,
           name: item.name,
+          size: item.size,
           maxQuantity: item.quantity,
           quantity: item.quantity,
           purchasePrice: parseFloat(item.purchasePrice),
@@ -96,6 +98,7 @@ export function PayDialog({
         _id: Math.random().toString(36).slice(2),
         isNew: true,
         name: "",
+        size: null,
         maxQuantity: 9999,
         quantity: 1,
         purchasePrice: 0,

@@ -200,32 +200,29 @@ export function NewOrderDialog({
               {items.map((item, index) => (
                 <div
                   key={item._id}
-                  className="p-3 bg-muted/50 rounded-lg space-y-2"
+                  className="p-2 bg-muted/50 rounded-lg space-y-2"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium">
-                      Товар #{index + 1}
-                    </span>
-                    {items.length > 1 && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 text-destructive"
-                        onClick={() => removeItem(index)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-
                   <Field>
-                    <FieldLabel className="text-xs">Название</FieldLabel>
+                    <FieldLabel className="text-xs flex items-center justify-between">
+                      Название
+                      {items.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 text-destructive"
+                          onClick={() => removeItem(index)}
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </FieldLabel>
+
                     <AutocompleteInput
                       value={item.name}
                       onChange={(value) => updateItem(index, { name: value })}
                       suggestions={getNameSuggestions(item.name)}
-                      placeholder="Юбка, Клеш брюки, Кашемир..."
+                      placeholder="Юбка №032"
                     />
                   </Field>
 
@@ -236,7 +233,7 @@ export function NewOrderDialog({
                         value={item.size}
                         onChange={(value) => updateItem(index, { size: value })}
                         suggestions={getSizeSuggestions(item.size)}
-                        placeholder="32-34, M..."
+                        placeholder="32-40, M"
                       />
                     </Field>
                     <Field>
