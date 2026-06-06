@@ -54,7 +54,7 @@ export function NewOrderDialog({
   const fetchClients = useClientsStore((s) => s.fetchClients);
   const [clientId, setClientId] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([
-    { _id: crypto.randomUUID(), name: "", quantity: 1, purchasePrice: 0 },
+    { _id: Math.random().toString(36).slice(2), name: "", quantity: 1, purchasePrice: 0 },
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -63,7 +63,7 @@ export function NewOrderDialog({
       fetchClients();
       setClientId(null);
       setItems([
-        { _id: crypto.randomUUID(), name: "", quantity: 0, purchasePrice: 0 },
+        { _id: Math.random().toString(36).slice(2), name: "", quantity: 0, purchasePrice: 0 },
       ]);
     }
   }, [open, fetchClients]);
@@ -76,7 +76,7 @@ export function NewOrderDialog({
   function addItem() {
     setItems([
       ...items,
-      { _id: crypto.randomUUID(), name: "", quantity: 0, purchasePrice: 0 },
+      { _id: Math.random().toString(36).slice(2), name: "", quantity: 0, purchasePrice: 0 },
     ]);
   }
 
@@ -138,7 +138,7 @@ export function NewOrderDialog({
                 value={clientId}
                 onValueChange={setClientId}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger>
                   <SelectValue placeholder="Выберите клиента" />
                 </SelectTrigger>
                 <SelectContent>

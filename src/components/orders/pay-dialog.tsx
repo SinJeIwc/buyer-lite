@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { FieldGroup } from "@/components/ui/field";
 import { type PayItem, paySupplierItems } from "@/server/supplier-items";
 import { useClientsStore } from "@/stores/clients-store";
 import { useItemsStore } from "@/stores/items-store";
@@ -74,7 +75,7 @@ export function PayDialog({
       setSelectedItems((prev) => [
         ...prev,
         {
-          _id: crypto.randomUUID(),
+          _id: Math.random().toString(36).slice(2),
           supplierItemId: item.id,
           isNew: false,
           name: item.name,
@@ -91,7 +92,7 @@ export function PayDialog({
     setSelectedItems((prev) => [
       ...prev,
       {
-        _id: crypto.randomUUID(),
+        _id: Math.random().toString(36).slice(2),
         isNew: true,
         name: "",
         maxQuantity: 9999,
@@ -165,45 +166,53 @@ export function PayDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Оплата ({supplierName})</DialogTitle>
-        </DialogHeader>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handlePay();
+          }}
+          className="flex flex-col gap-4"
+        >
+          <DialogHeader>
+            <DialogTitle>Оплата ({supplierName})</DialogTitle>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <ClientSelect value={clientId} onChange={setClientId} />
+          <FieldGroup>
+            <ClientSelect value={clientId} onChange={setClientId} />
 
-          <ItemSearch
-            supplierId={supplierId}
-            clientId={clientId ?? ""}
-            disabled={!clientId}
-            selectedIds={selectedIds}
-            onSelect={handleSelectItem}
-            onAddNew={handleAddNew}
-          />
+            <ItemSearch
+              supplierId={supplierId}
+              clientId={clientId ?? ""}
+              disabled={!clientId}
+              selectedIds={selectedIds}
+              onSelect={handleSelectItem}
+              onAddNew={handleAddNew}
+            />
 
-          <SelectedItems
-            items={selectedItems}
-            onUpdate={handleUpdateItem}
-            onRemove={handleRemoveItem}
-          />
+            <SelectedItems
+              items={selectedItems}
+              onUpdate={handleUpdateItem}
+              onRemove={handleRemoveItem}
+            />
 
-          <PriceSummary
-            total={totalPurchase}
-            clientPrice={clientPriceTotal}
-            isLocked={isLocked}
-            onClientPriceChange={handleClientPriceChange}
-            onLockToggle={handleLockToggle}
-          />
-        </div>
+            <PriceSummary
+              total={totalPurchase}
+              clientPrice={clientPriceTotal}
+              isLocked={isLocked}
+              onClientPriceChange={handleClientPriceChange}
+              onLockToggle={handleLockToggle}
+            />
+          </FieldGroup>
 
-        <DialogFooter>
-          <Button
-            onClick={handlePay}
-            disabled={isLoading || !clientId || selectedItems.length === 0}
-          >
-            {isLoading ? "Оплата..." : "Оплатить"}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              type="submit"
+              disabled={isLoading || !clientId || selectedItems.length === 0}
+            >
+              {isLoading ? "Оплата..." : "Оплатить"}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

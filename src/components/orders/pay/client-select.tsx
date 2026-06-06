@@ -35,7 +35,7 @@ export function ClientSelect({ value, onChange, disabled }: ClientSelectProps) {
         onValueChange={onChange}
         disabled={disabled || isLoading}
       >
-        <SelectTrigger className="w-full">
+        <SelectTrigger>
           <SelectValue
             placeholder={isLoading ? "Загрузка..." : "Выберите клиента"}
           />
