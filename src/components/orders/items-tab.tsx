@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/ui/delete-dialog";
 import { IsLoading } from "@/components/ui/is-loading";
@@ -15,6 +15,7 @@ import { LengthZero } from "@/components/ui/length-zero";
 import { deleteSupplierItem } from "@/server/supplier-items";
 import { useItemsStore } from "@/stores/items-store";
 import { useSuppliersStore } from "@/stores/suppliers-store";
+import { ClientChips } from "./client-chips";
 import { EditItemDialog } from "./edit-item-dialog";
 
 interface SupplierItem {
@@ -35,6 +36,13 @@ export function ItemsTab() {
   const suppliers = useSuppliersStore((s) => s.items);
   const [editItem, setEditItem] = useState<SupplierItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeClientId, setActiveClientId] = useState<string | null>(null);
+
+  // Фильтрация
+  const filteredItems = useMemo(() => {
+    if (!activeClientId) return items;
+    return items.filter((item) => item.clientId === activeClientId);
+  }, [items, activeClientId]);
 
   function getSupplierName(supplierId: string) {
     return suppliers.find((s) => s.id === supplierId)?.name || "—";
@@ -49,13 +57,21 @@ export function ItemsTab() {
 
   return (
     <div className="space-y-4">
+      {/* Чипсы клиентов */}
+      <ClientChips
+        items={items}
+        activeClientId={activeClientId}
+        onChange={setActiveClientId}
+      />
+
+      {/* Список товаров */}
       {isLoading ? (
         <IsLoading />
-      ) : items.length === 0 ? (
+      ) : filteredItems.length === 0 ? (
         <LengthZero />
       ) : (
         <div className="space-y-2">
-          {items.map((item) => (
+          {filteredItems.map((item) => (
             <Item key={item.id} variant="outline" size="xs">
               <ItemContent className="p-4 min-w-0">
                 <ItemTitle className="truncate">
