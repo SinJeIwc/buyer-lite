@@ -37,9 +37,9 @@ interface Client {
 }
 
 export function ClientsList() {
-  const clients = useClientsStore((s) => s.clients);
+  const clients = useClientsStore((s) => s.items);
   const isLoading = useClientsStore((s) => s.isLoading);
-  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const fetchClients = useClientsStore((s) => s.fetchItems);
   const refresh = useClientsStore((s) => s.refresh);
   const [formOpen, setFormOpen] = useState(false);
   const [editClient, setEditClient] = useState<Client | null>(null);

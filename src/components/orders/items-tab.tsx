@@ -23,6 +23,7 @@ interface SupplierItem {
   clientId: string;
   clientName: string | null;
   name: string;
+  size: string | null;
   quantity: number;
   purchasePrice: string;
 }
@@ -31,7 +32,7 @@ export function ItemsTab() {
   const items = useItemsStore((s) => s.items);
   const isLoading = useItemsStore((s) => s.isLoading);
   const refreshItems = useItemsStore((s) => s.refresh);
-  const suppliers = useSuppliersStore((s) => s.suppliers);
+  const suppliers = useSuppliersStore((s) => s.items);
   const [editItem, setEditItem] = useState<SupplierItem | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
@@ -57,7 +58,14 @@ export function ItemsTab() {
           {items.map((item) => (
             <Item key={item.id} variant="outline" size="xs">
               <ItemContent className="p-4 min-w-0">
-                <ItemTitle className="truncate">{item.name}</ItemTitle>
+                <ItemTitle className="truncate">
+                  {item.name}
+                  {item.size && (
+                    <span className="text-muted-foreground ml-1">
+                      ({item.size})
+                    </span>
+                  )}
+                </ItemTitle>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground overflow-hidden">
                   <span className="truncate shrink-0 max-w-20">
                     {item.clientName || "—"}

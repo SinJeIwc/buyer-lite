@@ -11,6 +11,7 @@ import {
   ItemContent,
   ItemTitle,
 } from "@/components/ui/item";
+import { useItemsStore } from "@/stores/items-store";
 import { useSuppliersStore } from "@/stores/suppliers-store";
 import { NewOrderDialog } from "./new-order-dialog";
 import { PayDialog } from "./pay-dialog";
@@ -21,12 +22,17 @@ interface Supplier {
 }
 
 export function SuppliersTab() {
-  const suppliers = useSuppliersStore((s) => s.suppliers);
+  const suppliers = useSuppliersStore((s) => s.items);
   const isLoading = useSuppliersStore((s) => s.isLoading);
-  const refresh = useSuppliersStore((s) => s.refresh);
+  const refreshSuppliers = useSuppliersStore((s) => s.refresh);
+  const refreshItems = useItemsStore((s) => s.refresh);
   const [supplierFormOpen, setSupplierFormOpen] = useState(false);
   const [paySupplier, setPaySupplier] = useState<Supplier | null>(null);
   const [orderSupplier, setOrderSupplier] = useState<Supplier | null>(null);
+
+  async function handleRefreshAll() {
+    await Promise.all([refreshSuppliers(), refreshItems()]);
+  }
 
   return (
     <div className="space-y-4">
@@ -68,7 +74,7 @@ export function SuppliersTab() {
       <SupplierFormDialog
         open={supplierFormOpen}
         onOpenChange={setSupplierFormOpen}
-        onSuccess={() => refresh()}
+        onSuccess={() => refreshSuppliers()}
       />
 
       {paySupplier && (
@@ -79,7 +85,7 @@ export function SuppliersTab() {
           supplierName={paySupplier.name}
           onSuccess={() => {
             setPaySupplier(null);
-            refresh();
+            handleRefreshAll();
           }}
         />
       )}
@@ -92,7 +98,7 @@ export function SuppliersTab() {
           supplierName={orderSupplier.name}
           onSuccess={() => {
             setOrderSupplier(null);
-            refresh();
+            handleRefreshAll();
           }}
         />
       )}

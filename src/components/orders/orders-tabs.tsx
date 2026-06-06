@@ -10,7 +10,7 @@ import { ItemsTab } from "./items-tab";
 import { SuppliersTab } from "./suppliers-tab";
 
 export function OrdersTabs() {
-  const fetchSuppliers = useSuppliersStore((s) => s.fetchSuppliers);
+  const fetchSuppliers = useSuppliersStore((s) => s.fetchItems);
   const fetchItems = useItemsStore((s) => s.fetchItems);
   const refreshSuppliers = useSuppliersStore((s) => s.refresh);
   const refreshItems = useItemsStore((s) => s.refresh);

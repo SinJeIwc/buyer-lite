@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { getNameSuggestions, getSizeSuggestions } from "@/lib/item-suggestions";
 import { updateSupplierItem } from "@/server/supplier-items";
 import { useClientsStore } from "@/stores/clients-store";
 
@@ -30,6 +32,7 @@ interface EditItemDialogProps {
     clientId: string;
     clientName: string | null;
     name: string;
+    size: string | null;
     quantity: number;
     purchasePrice: string;
   };
@@ -47,11 +50,12 @@ export function EditItemDialog({
   item,
   onSuccess,
 }: EditItemDialogProps) {
-  const clientsList = useClientsStore((s) => s.clients);
-  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const clientsList = useClientsStore((s) => s.items);
+  const fetchClients = useClientsStore((s) => s.fetchItems);
   const isLoadingClients = useClientsStore((s) => s.isLoading);
   const [clientId, setClientId] = useState<string | null>(item.clientId);
   const [name, setName] = useState(item.name);
+  const [size, setSize] = useState(item.size || "");
   const [quantity, setQuantity] = useState(item.quantity.toString());
   const [purchasePrice, setPurchasePrice] = useState(item.purchasePrice);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,6 +65,7 @@ export function EditItemDialog({
       fetchClients();
       setClientId(item.clientId);
       setName(item.name);
+      setSize(item.size || "");
       setQuantity(item.quantity.toString());
       setPurchasePrice(item.purchasePrice);
     }
@@ -80,6 +85,7 @@ export function EditItemDialog({
       await updateSupplierItem(item.id, {
         clientId,
         name: name.trim(),
+        size: size.trim() || undefined,
         quantity: parseInt(quantity, 10) || 0,
         purchasePrice: parseFloat(purchasePrice) || 0,
       });
@@ -123,33 +129,44 @@ export function EditItemDialog({
             </Field>
             <Field>
               <FieldLabel htmlFor="edit-name">Название</FieldLabel>
-              <Input
-                id="edit-name"
+              <AutocompleteInput
                 value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
+                onChange={setName}
+                suggestions={getNameSuggestions(name)}
+                placeholder="Юбка, Клеш брюки..."
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="edit-quantity">Количество</FieldLabel>
-              <Input
-                id="edit-quantity"
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(e.target.value)}
+              <FieldLabel htmlFor="edit-size">Размер</FieldLabel>
+              <AutocompleteInput
+                value={size}
+                onChange={setSize}
+                suggestions={getSizeSuggestions(size)}
+                placeholder="32-34, M..."
               />
             </Field>
-            <Field>
-              <FieldLabel htmlFor="edit-price">Цена за штуку</FieldLabel>
-              <Input
-                id="edit-price"
-                type="number"
-                step="0.01"
-                value={purchasePrice}
-                onChange={(e) => setPurchasePrice(e.target.value)}
-              />
-            </Field>
+            <div className="grid grid-cols-2 gap-2">
+              <Field>
+                <FieldLabel htmlFor="edit-quantity">Количество</FieldLabel>
+                <Input
+                  id="edit-quantity"
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="edit-price">Цена за штуку</FieldLabel>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  step="0.01"
+                  value={purchasePrice}
+                  onChange={(e) => setPurchasePrice(e.target.value)}
+                />
+              </Field>
+            </div>
           </FieldGroup>
 
           <DialogFooter>

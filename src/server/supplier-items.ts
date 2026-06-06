@@ -32,6 +32,7 @@ export async function getSupplierItems(supplierId?: string) {
       clientId: supplierItems.clientId,
       clientName: clients.name,
       name: supplierItems.name,
+      size: supplierItems.size,
       quantity: supplierItems.quantity,
       purchasePrice: supplierItems.purchasePrice,
       createdAt: supplierItems.createdAt,
@@ -90,6 +91,7 @@ export async function createSupplierItem(data: {
   clientId: string;
   supplierId: string;
   name: string;
+  size?: string;
   quantity: number;
   purchasePrice: number;
 }) {
@@ -100,6 +102,7 @@ export async function createSupplierItem(data: {
     clientId: data.clientId,
     supplierId: data.supplierId,
     name: data.name,
+    size: data.size || null,
     quantity: data.quantity,
     purchasePrice: data.purchasePrice.toFixed(2),
   });
@@ -112,6 +115,7 @@ export async function updateSupplierItem(
   data: {
     clientId?: string;
     name?: string;
+    size?: string;
     quantity?: number;
     purchasePrice?: number;
   },
@@ -121,6 +125,7 @@ export async function updateSupplierItem(
   const updateData: Record<string, unknown> = { updatedAt: new Date() };
   if (data.clientId !== undefined) updateData.clientId = data.clientId;
   if (data.name !== undefined) updateData.name = data.name;
+  if (data.size !== undefined) updateData.size = data.size || null;
   if (data.quantity !== undefined) updateData.quantity = data.quantity;
   if (data.purchasePrice !== undefined)
     updateData.purchasePrice = data.purchasePrice.toFixed(2);
@@ -149,6 +154,7 @@ export interface PayItem {
   supplierItemId?: string; // Если существующий товар
   isNew?: boolean; // Если новый товар
   name?: string; // Для нового товара
+  size?: string; // Для нового товара
   quantity: number;
   purchasePrice?: number; // Для нового товара
 }
@@ -204,6 +210,7 @@ export async function paySupplierItems(data: {
           clientId: data.clientId,
           supplierId: data.supplierId,
           name: item.name,
+          size: item.size || null,
           quantity: item.quantity,
         });
       }
@@ -263,6 +270,7 @@ export async function paySupplierItems(data: {
           clientId: data.clientId,
           supplierId: data.supplierId,
           name: supplierItem.name,
+          size: supplierItem.size,
           quantity: item.quantity,
         });
       }
@@ -302,6 +310,7 @@ export async function getStorageItems(clientId?: string) {
       clientName: clients.name,
       supplierId: storageItems.supplierId,
       name: storageItems.name,
+      size: storageItems.size,
       quantity: storageItems.quantity,
     })
     .from(storageItems)

@@ -18,7 +18,7 @@ interface ClientSelectProps {
 }
 
 export function ClientSelect({ value, onChange, disabled }: ClientSelectProps) {
-  const clientsList = useClientsStore((s) => s.clients);
+  const clientsList = useClientsStore((s) => s.items);
   const isLoading = useClientsStore((s) => s.isLoading);
 
   const items = clientsList.map((c) => ({

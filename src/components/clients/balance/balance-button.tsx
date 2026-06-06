@@ -52,13 +52,9 @@ export function BalanceButton({ clientId, onSuccess }: BalanceButtonProps) {
 
   return (
     <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8"
-        onClick={() => setIsOpen(true)}
-      >
+      <Button variant="outline" className="" onClick={() => setIsOpen(true)}>
         <Plus className="w-4 h-4" />
+        Пополнить
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

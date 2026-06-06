@@ -34,7 +34,8 @@ export function PayDialog({
   supplierName,
   onSuccess,
 }: PayDialogProps) {
-  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const fetchClients = useClientsStore((s) => s.fetchItems);
+  const refreshClients = useClientsStore((s) => s.refresh);
   const refreshItems = useItemsStore((s) => s.refresh);
 
   const [clientId, setClientId] = useState<string | null>(null);
@@ -153,6 +154,7 @@ export function PayDialog({
       });
 
       await refreshItems();
+      await refreshClients();
       onSuccess();
     } finally {
       setIsLoading(false);

@@ -24,9 +24,9 @@ interface Supplier {
 }
 
 export function SuppliersList() {
-  const suppliers = useSuppliersStore((s) => s.suppliers);
+  const suppliers = useSuppliersStore((s) => s.items);
   const isLoading = useSuppliersStore((s) => s.isLoading);
-  const fetchSuppliers = useSuppliersStore((s) => s.fetchSuppliers);
+  const fetchSuppliers = useSuppliersStore((s) => s.fetchItems);
   const refresh = useSuppliersStore((s) => s.refresh);
   const [formOpen, setFormOpen] = useState(false);
   const [editData, setEditData] = useState<Supplier | null>(null);

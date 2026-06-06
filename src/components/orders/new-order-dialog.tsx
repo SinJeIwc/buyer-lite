@@ -2,6 +2,7 @@
 
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  getNameSuggestions,
+  getSizeSuggestions,
+  saveItemSuggestion,
+} from "@/lib/item-suggestions";
 import { createSupplierItem } from "@/server/supplier-items";
 import { useClientsStore } from "@/stores/clients-store";
 
@@ -34,6 +40,7 @@ interface NewOrderDialogProps {
 interface OrderItem {
   _id: string;
   name: string;
+  size: string;
   quantity: number;
   purchasePrice: number;
 }
@@ -50,11 +57,17 @@ export function NewOrderDialog({
   supplierName,
   onSuccess,
 }: NewOrderDialogProps) {
-  const clientsList = useClientsStore((s) => s.clients);
-  const fetchClients = useClientsStore((s) => s.fetchClients);
+  const clientsList = useClientsStore((s) => s.items);
+  const fetchClients = useClientsStore((s) => s.fetchItems);
   const [clientId, setClientId] = useState<string | null>(null);
   const [items, setItems] = useState<OrderItem[]>([
-    { _id: Math.random().toString(36).slice(2), name: "", quantity: 1, purchasePrice: 0 },
+    {
+      _id: Math.random().toString(36).slice(2),
+      name: "",
+      size: "",
+      quantity: 1,
+      purchasePrice: 0,
+    },
   ]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -63,7 +76,13 @@ export function NewOrderDialog({
       fetchClients();
       setClientId(null);
       setItems([
-        { _id: Math.random().toString(36).slice(2), name: "", quantity: 0, purchasePrice: 0 },
+        {
+          _id: Math.random().toString(36).slice(2),
+          name: "",
+          size: "",
+          quantity: 0,
+          purchasePrice: 0,
+        },
       ]);
     }
   }, [open, fetchClients]);
@@ -76,7 +95,13 @@ export function NewOrderDialog({
   function addItem() {
     setItems([
       ...items,
-      { _id: Math.random().toString(36).slice(2), name: "", quantity: 0, purchasePrice: 0 },
+      {
+        _id: Math.random().toString(36).slice(2),
+        name: "",
+        size: "",
+        quantity: 0,
+        purchasePrice: 0,
+      },
     ]);
   }
 
@@ -109,9 +134,13 @@ export function NewOrderDialog({
             clientId,
             supplierId,
             name: item.name.trim(),
+            size: item.size.trim() || undefined,
             quantity: item.quantity,
             purchasePrice: item.purchasePrice,
           });
+
+          // Сохраняем в рекомендации
+          saveItemSuggestion(item.name.trim(), item.size.trim() || undefined);
         }
       }
       onOpenChange(false);
@@ -192,16 +221,24 @@ export function NewOrderDialog({
 
                   <Field>
                     <FieldLabel className="text-xs">Название</FieldLabel>
-                    <Input
-                      placeholder="ADE25 юбка синяя"
+                    <AutocompleteInput
                       value={item.name}
-                      onChange={(e) =>
-                        updateItem(index, { name: e.target.value })
-                      }
+                      onChange={(value) => updateItem(index, { name: value })}
+                      suggestions={getNameSuggestions(item.name)}
+                      placeholder="Юбка, Клеш брюки, Кашемир..."
                     />
                   </Field>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Field>
+                      <FieldLabel className="text-xs">Размер</FieldLabel>
+                      <AutocompleteInput
+                        value={item.size}
+                        onChange={(value) => updateItem(index, { size: value })}
+                        suggestions={getSizeSuggestions(item.size)}
+                        placeholder="32-34, M..."
+                      />
+                    </Field>
                     <Field>
                       <FieldLabel className="text-xs">Количество</FieldLabel>
                       <Input

@@ -139,6 +139,7 @@ export const supplierItems = pgTable("supplier_items", {
     .references(() => suppliers.id)
     .notNull(),
   name: text("name").notNull(), // "ADE25 юбка синяя"
+  size: text("size"), // Опционально: "32-34", "M", и т.д.
   quantity: integer("quantity").notNull(),
   purchasePrice: decimal("purchase_price", {
     precision: 10,
@@ -161,6 +162,7 @@ export const storageItems = pgTable("storage_items", {
     .references(() => suppliers.id)
     .notNull(),
   name: text("name").notNull(), // "ADE25 юбка синяя"
+  size: text("size"), // Опционально
   quantity: integer("quantity").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
