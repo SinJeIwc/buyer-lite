@@ -23,6 +23,12 @@ export const metadata: Metadata = {
     maximumScale: 1,
     userScalable: false,
   },
+  applicationName: "Buyer Lite",
+  appleWebApp: {
+    title: "Buyer Lite",
+    capable: true,
+    statusBarStyle: "default",
+  },
 };
 
 export default function RootLayout({
