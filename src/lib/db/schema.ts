@@ -116,7 +116,7 @@ export const shipments = pgTable("shipments", {
   status: text("status").notNull().default("preparing"), // preparing / shipped
   destination: text("destination"), // Куда едет
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }), // Стоимость доставки в KGS
-  notes: text("notes"), // Что написано на мешке
+  notes: text("notes"), //
   createdAt: timestamp("created_at").defaultNow(),
   shippedAt: timestamp("shipped_at"),
 });
@@ -232,7 +232,10 @@ export const orderPayments = pgTable("order_payments", {
     .references(() => suppliers.id)
     .notNull(),
   buyerTotal: decimal("buyer_total", { precision: 12, scale: 2 }).notNull(),
-  purchaseTotal: decimal("purchase_total", { precision: 12, scale: 2 }).notNull(),
+  purchaseTotal: decimal("purchase_total", {
+    precision: 12,
+    scale: 2,
+  }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -245,7 +248,10 @@ export const orderPaymentItems = pgTable("order_payment_items", {
   name: text("name").notNull(),
   size: text("size"),
   quantity: integer("quantity").notNull(),
-  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
+  purchasePrice: decimal("purchase_price", {
+    precision: 10,
+    scale: 2,
+  }).notNull(),
   buyerPrice: decimal("buyer_price", { precision: 10, scale: 2 }).notNull(),
 });
 

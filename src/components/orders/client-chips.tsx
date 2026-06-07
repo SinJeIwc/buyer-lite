@@ -36,7 +36,7 @@ export function ClientChips({
   if (clients.length <= 1) return null;
 
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+    <div className="flex gap-2 overflow-x-auto scrollbar-none">
       <Button
         variant={!activeClientId ? "default" : "outline"}
         size="sm"
