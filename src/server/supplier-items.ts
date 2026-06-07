@@ -6,8 +6,11 @@ import { db } from "@/lib/db";
 import {
   balanceTransactions,
   clients,
+  orderPaymentItems,
+  orderPayments,
   storageItems,
   supplierItems,
+  suppliers,
 } from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
@@ -175,13 +178,26 @@ export async function paySupplierItems(data: {
 
   if (!client) throw new Error("Клиент не найден");
 
-  // Считаем общую сумму закупки (для информации)
+  // Считаем общую сумму закупки и собираем детали товаров
   let _totalPurchase = 0;
+  const _itemDetails: Array<{
+    name: string;
+    size: string | null;
+    quantity: number;
+    purchasePrice: number;
+  }> = [];
 
   for (const item of data.items) {
     if (item.isNew && item.name) {
       // Новый товар — сразу в storage
-      _totalPurchase += (item.purchasePrice || 0) * item.quantity;
+      const price = item.purchasePrice || 0;
+      _totalPurchase += price * item.quantity;
+      _itemDetails.push({
+        name: item.name,
+        size: item.size || null,
+        quantity: item.quantity,
+        purchasePrice: price,
+      });
 
       // Ищем существующий на складе
       const [existing] = await db
@@ -212,6 +228,7 @@ export async function paySupplierItems(data: {
           name: item.name,
           size: item.size || null,
           quantity: item.quantity,
+          purchasePrice: (item.purchasePrice || 0).toFixed(2),
         });
       }
     } else if (item.supplierItemId) {
@@ -228,7 +245,14 @@ export async function paySupplierItems(data: {
 
       if (!supplierItem) throw new Error("Товар не найден");
 
-      _totalPurchase += parseFloat(supplierItem.purchasePrice) * item.quantity;
+      const price = parseFloat(supplierItem.purchasePrice);
+      _totalPurchase += price * item.quantity;
+      _itemDetails.push({
+        name: supplierItem.name,
+        size: supplierItem.size,
+        quantity: item.quantity,
+        purchasePrice: price,
+      });
 
       // Уменьшаем количество в supplier_items
       const newQuantity = supplierItem.quantity - item.quantity;
@@ -272,6 +296,7 @@ export async function paySupplierItems(data: {
           name: supplierItem.name,
           size: supplierItem.size,
           quantity: item.quantity,
+          purchasePrice: supplierItem.purchasePrice,
         });
       }
     }
@@ -294,6 +319,32 @@ export async function paySupplierItems(data: {
     description: `Оплата товаров (${data.items.length} позиций)`,
   });
 
+  // Сохраняем детали оплаты для истории
+  const [payment] = await db
+    .insert(orderPayments)
+    .values({
+      userId,
+      clientId: data.clientId,
+      supplierId: data.supplierId,
+      buyerTotal: clientPrice.toFixed(2),
+      purchaseTotal: _totalPurchase.toFixed(2),
+    })
+    .returning();
+
+  // Сохраняем товары оплаты (цена закупки = цена для байера, итоговая сумма в order_payments)
+  if (_itemDetails.length > 0) {
+    await db.insert(orderPaymentItems).values(
+      _itemDetails.map((item) => ({
+        paymentId: payment.id,
+        name: item.name,
+        size: item.size,
+        quantity: item.quantity,
+        purchasePrice: item.purchasePrice.toFixed(2),
+        buyerPrice: item.purchasePrice.toFixed(2),
+      })),
+    );
+  }
+
   revalidatePath("/orders");
   revalidatePath("/clients");
 }
@@ -309,12 +360,15 @@ export async function getStorageItems(clientId?: string) {
       clientId: storageItems.clientId,
       clientName: clients.name,
       supplierId: storageItems.supplierId,
+      supplierName: suppliers.name,
       name: storageItems.name,
       size: storageItems.size,
       quantity: storageItems.quantity,
+      purchasePrice: storageItems.purchasePrice,
     })
     .from(storageItems)
     .leftJoin(clients, eq(storageItems.clientId, clients.id))
+    .leftJoin(suppliers, eq(storageItems.supplierId, suppliers.id))
     .where(
       clientId
         ? and(

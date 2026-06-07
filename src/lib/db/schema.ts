@@ -106,10 +106,14 @@ export const orderItems = pgTable("order_items", {
 // Отправки (карго)
 export const shipments = pgTable("shipments", {
   id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
   clientId: uuid("client_id")
     .references(() => clients.id)
     .notNull(),
-  status: text("status").notNull().default("preparing"), // preparing / shipped / delivered
+  code: text("code"), // Ручной ID отправки (для отчётов)
+  status: text("status").notNull().default("preparing"), // preparing / shipped
   destination: text("destination"), // Куда едет
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }), // Стоимость доставки в KGS
   notes: text("notes"), // Что написано на мешке
@@ -123,10 +127,10 @@ export const shipmentItems = pgTable("shipment_items", {
   shipmentId: uuid("shipment_id")
     .references(() => shipments.id)
     .notNull(),
-  orderItemId: uuid("order_item_id")
-    .references(() => orderItems.id)
+  storageItemId: uuid("storage_item_id")
+    .references(() => storageItems.id)
     .notNull(),
-  quantity: integer("quantity").notNull(), // Может быть часть от общего количества
+  quantity: integer("quantity").notNull(),
 });
 
 // Товары от поставщика (не оплачены)
@@ -167,6 +171,12 @@ export const storageItems = pgTable("storage_items", {
   name: text("name").notNull(), // "ADE25 юбка синяя"
   size: text("size"), // Опционально
   quantity: integer("quantity").notNull().default(0),
+  purchasePrice: decimal("purchase_price", {
+    precision: 10,
+    scale: 2,
+  })
+    .notNull()
+    .default("0"), // Цена за штуку в KGS
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -207,6 +217,36 @@ export const balanceTransactions = pgTable("balance_transactions", {
   referenceId: uuid("reference_id"), // ID заказа/отправки/операции
   description: text("description"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Оплаты заказов (детали)
+export const orderPayments = pgTable("order_payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .references(() => userProfiles.id)
+    .notNull(),
+  clientId: uuid("client_id")
+    .references(() => clients.id)
+    .notNull(),
+  supplierId: uuid("supplier_id")
+    .references(() => suppliers.id)
+    .notNull(),
+  buyerTotal: decimal("buyer_total", { precision: 12, scale: 2 }).notNull(),
+  purchaseTotal: decimal("purchase_total", { precision: 12, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Товары в оплате
+export const orderPaymentItems = pgTable("order_payment_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  paymentId: uuid("payment_id")
+    .references(() => orderPayments.id)
+    .notNull(),
+  name: text("name").notNull(),
+  size: text("size"),
+  quantity: integer("quantity").notNull(),
+  purchasePrice: decimal("purchase_price", { precision: 10, scale: 2 }).notNull(),
+  buyerPrice: decimal("buyer_price", { precision: 10, scale: 2 }).notNull(),
 });
 
 export interface CurrencyItem {

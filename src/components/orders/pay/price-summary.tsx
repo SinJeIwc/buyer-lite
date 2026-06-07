@@ -27,7 +27,7 @@ export function PriceSummary({
         <span className="font-medium">{total.toLocaleString("ru-RU")} с</span>
       </div>
       <div className="flex items-center gap-2">
-        <Label className="text-sm shrink-0">Для клиента:</Label>
+        <Label className="text-sm shrink-0">Для байера:</Label>
         <div className="flex-1 flex items-center gap-1">
           <Input
             type="number"

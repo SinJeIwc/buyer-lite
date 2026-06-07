@@ -1,6 +1,7 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { History, RefreshCw } from "lucide-react";
+import Link from "next/link";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +32,11 @@ export function OrdersTabs() {
   return (
     <Tabs defaultValue="suppliers">
       <TabsList className="w-full">
+        <Link href="/order-history">
+          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <History className="w-4 h-4" />
+          </Button>
+        </Link>
         <TabsTrigger value="suppliers" className="flex-1">
           Поставщики
         </TabsTrigger>
