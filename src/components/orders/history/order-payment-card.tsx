@@ -31,12 +31,14 @@ export function OrderPaymentCard({ payment }: OrderPaymentCardProps) {
       day: "2-digit",
       month: "2-digit",
       year: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   }
 
   const buyerTotal = parseFloat(payment.buyerTotal);
   const purchaseTotal = parseFloat(payment.purchaseTotal);
-  const margin = buyerTotal - purchaseTotal;
+  const margin = purchaseTotal - buyerTotal;
 
   return (
     <Item variant="outline" size="xs">
@@ -48,14 +50,11 @@ export function OrderPaymentCard({ payment }: OrderPaymentCardProps) {
               {payment.supplierName || "—"}
             </span>
           </span>
-          {/*<span className="text-sm font-bold shrink-0 ml-2">
-            {format(buyerTotal)} с
-          </span>*/}
         </ItemTitle>
         <ItemDescription className="flex items-center gap-2 text-xs">
           <span>{formatDate(payment.createdAt)}</span>
           <span>•</span>
-          <span>{payment.items.length} товаров</span>
+          <span>Кол-во: {payment.items.length}</span>
           <span>•</span>
           <span>{format(buyerTotal)} с</span>
         </ItemDescription>
@@ -85,10 +84,8 @@ export function OrderPaymentCard({ payment }: OrderPaymentCardProps) {
               </div>
             ))}
             <div className="grid grid-cols-2 text-xs font-medium pt-1 border-t">
-              <span>Маржа</span>
-              <span className="text-green-600 ml-auto">
-                +{format(margin)} с
-              </span>
+              <span className="font-normal">Скрытая маржа</span>
+              <span className="text-green-600 ml-auto">{format(margin)} с</span>
               <span>Итоговая сумма</span>
               <span className="ml-auto">{format(purchaseTotal)} с</span>
             </div>
@@ -99,7 +96,7 @@ export function OrderPaymentCard({ payment }: OrderPaymentCardProps) {
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 text-xs justify-end w-full px-0"
+          className="h-7 text-xs justify-end w-full px-0 hover:bg-transparent data-[state=open]:bg-transparent"
           onClick={() => setExpanded(!expanded)}
         >
           {expanded ? (
