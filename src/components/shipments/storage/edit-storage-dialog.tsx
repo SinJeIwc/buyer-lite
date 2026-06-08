@@ -23,7 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { getNameSuggestions, getSizeSuggestions } from "@/lib/item-suggestions";
-import { updateStorageItem } from "@/server/shipments";
+import { updateStorageItem } from "@/server/storage";
 import { useClientsStore } from "@/stores/clients-store";
 import type { StorageItem } from "@/stores/storage-store";
 import { type EditStorageItemValues, editStorageItemSchema } from "../schemas";

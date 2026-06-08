@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { FieldGroup } from "@/components/ui/field";
-import { type PayItem, paySupplierItems } from "@/server/supplier-items";
+import { type PayItem, paySupplierItems } from "@/server/supplier-payments";
 import { useClientsStore } from "@/stores/clients-store";
 import { useItemsStore } from "@/stores/items-store";
 import { ClientSelect } from "./pay/client-select";

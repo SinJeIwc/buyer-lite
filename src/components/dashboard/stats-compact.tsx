@@ -17,6 +17,11 @@ const emptyStats: DashboardStats["today"] = {
   orderDiscount: 0,
   shipping: 0,
   count: 0,
+  ordersCount: 0,
+  shipmentsCount: 0,
+  avgOrderValue: 0,
+  avgCommission: 0,
+  marginPercent: 0,
 };
 
 export function StatsCompact() {

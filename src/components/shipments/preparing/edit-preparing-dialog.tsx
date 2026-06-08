@@ -25,9 +25,9 @@ import {
 import {
   addShipmentItem,
   removeShipmentItem,
-  updateShipment,
   updateShipmentItemQuantity,
-} from "@/server/shipments";
+} from "@/server/shipment-actions";
+import { updateShipment } from "@/server/shipments";
 import { useClientsStore } from "@/stores/clients-store";
 import type { Shipment } from "@/stores/shipments-store";
 import { useStorageStore } from "@/stores/storage-store";

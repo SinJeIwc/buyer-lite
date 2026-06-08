@@ -1,5 +1,5 @@
 import { createFetchStore } from "@/lib/create-fetch-store";
-import { getStorageItems } from "@/server/supplier-items";
+import { getStorageItems } from "@/server/storage";
 
 export interface StorageItem {
   id: string;

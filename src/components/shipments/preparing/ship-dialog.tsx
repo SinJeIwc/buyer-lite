@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { getCommissionRate } from "@/server/settings";
-import { shipShipment } from "@/server/shipments";
+import { shipShipment } from "@/server/shipment-actions";
 import type { Shipment } from "@/stores/shipments-store";
 import { type ShippedShipmentValues, shippedShipmentSchema } from "../schemas";
 

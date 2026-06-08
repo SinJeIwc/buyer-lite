@@ -24,7 +24,7 @@ import {
   ItemTitle,
 } from "@/components/ui/item";
 import { LengthZero } from "@/components/ui/length-zero";
-import { revertShipmentToPreparing } from "@/server/shipments";
+import { revertShipmentToPreparing } from "@/server/shipment-actions";
 import { useShipmentHistoryStore } from "@/stores/shipment-history-store";
 import type { Shipment } from "@/stores/shipments-store";
 import { useShipmentsStore } from "@/stores/shipments-store";
