@@ -113,7 +113,7 @@ export function ExchangeTab({
           id="rate-real"
           type="number"
           step="0.0001"
-          placeholder="0.116"
+          placeholder="1.16"
           value={rateReal}
           onChange={(e) => handleRateRealChange(e.target.value)}
         />
@@ -141,7 +141,7 @@ export function ExchangeTab({
           id="rate-client"
           type="number"
           step="0.0001"
-          placeholder="0.116"
+          placeholder="1.16"
           value={rateClient}
           onChange={(e) => setRateClient(e.target.value)}
           disabled={isLocked}
