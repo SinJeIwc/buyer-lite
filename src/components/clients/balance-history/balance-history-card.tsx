@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Item,
   ItemContent,
@@ -8,6 +9,7 @@ import {
 } from "@/components/ui/item";
 import type { BalanceOperationWithClient } from "@/server/balance";
 import { type BalanceOperationType, balanceOperationLabels } from "../types";
+import { TransactionDetailDialog } from "./transaction-detail-dialog";
 
 const typeColors: Record<BalanceOperationType, string> = {
   deposit: "text-green-600",
@@ -22,39 +24,53 @@ interface BalanceHistoryCardProps {
 }
 
 export function BalanceHistoryCard({ operation }: BalanceHistoryCardProps) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const amount = parseFloat(operation.amount);
   const isPositive = amount >= 0;
   const opType = operation.type as BalanceOperationType;
 
   return (
-    <Item variant="outline" size="xs">
-      <ItemContent>
-        <ItemTitle className="flex items-center justify-between gap-2">
-          <span className="truncate">{operation.clientName || "—"}</span>
-          <span
-            className={`text-sm font-medium tabular-nums ${isPositive ? "text-green-600" : "text-red-600"}`}
-          >
-            {isPositive ? "+" : ""}
-            {amount.toLocaleString("ru-RU")} с
-          </span>
-        </ItemTitle>
-        <ItemDescription className="flex items-center gap-2">
-          <span className={typeColors[opType]}>
-            {balanceOperationLabels[opType] ?? operation.type}
-          </span>
-          {operation.description && (
-            <span className="text-muted-foreground truncate">
-              · {operation.description}
+    <>
+      <Item
+        variant="outline"
+        size="xs"
+        className="cursor-pointer active:scale-[0.98] transition-transform"
+        onClick={() => setDetailOpen(true)}
+      >
+        <ItemContent>
+          <ItemTitle className="flex items-center justify-between gap-2">
+            <span className="truncate">{operation.clientName || "—"}</span>
+            <span
+              className={`text-sm font-medium tabular-nums ${isPositive ? "text-green-600" : "text-red-600"}`}
+            >
+              {isPositive ? "+" : ""}
+              {amount.toLocaleString("ru-RU")} с
             </span>
+          </ItemTitle>
+          <ItemDescription className="flex items-center gap-2">
+            <span className={typeColors[opType]}>
+              {balanceOperationLabels[opType] ?? operation.type}
+            </span>
+            {operation.description && (
+              <span className="text-muted-foreground truncate">
+                · {operation.description}
+              </span>
+            )}
+          </ItemDescription>
+          {operation.type === "deposit" && operation.amountForeign && (
+            <p className="text-xs text-muted-foreground mt-1">
+              {parseFloat(operation.amountForeign).toLocaleString("ru-RU")}{" "}
+              {operation.currencyCode} × {operation.rateClient}
+            </p>
           )}
-        </ItemDescription>
-        {operation.type === "deposit" && operation.amountForeign && (
-          <p className="text-xs text-muted-foreground mt-1">
-            {parseFloat(operation.amountForeign).toLocaleString("ru-RU")}{" "}
-            {operation.currencyCode} × {operation.rateClient}
-          </p>
-        )}
-      </ItemContent>
-    </Item>
+        </ItemContent>
+      </Item>
+
+      <TransactionDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        operation={operation}
+      />
+    </>
   );
 }

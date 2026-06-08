@@ -66,43 +66,6 @@ export const balanceOperations = pgTable("balance_operations", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Заказы (от поставщика)
-export const orders = pgTable("orders", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .references(() => userProfiles.id)
-    .notNull(),
-  clientId: uuid("client_id")
-    .references(() => clients.id)
-    .notNull(),
-  supplierId: uuid("supplier_id")
-    .references(() => suppliers.id)
-    .notNull(),
-  status: text("status").notNull().default("planned"), // planned / purchased / ready / shipped
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// Товары в заказе
-export const orderItems = pgTable("order_items", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  orderId: uuid("order_id")
-    .references(() => orders.id)
-    .notNull(),
-  itemTypeId: uuid("item_type_id").references(() => itemTypes.id),
-  externalId: text("external_id"), // ID у поставщика
-  quantity: integer("quantity").notNull(),
-  purchasePrice: decimal("purchase_price", {
-    precision: 10,
-    scale: 2,
-  }).notNull(), // Реальная цена в KGS
-  clientPrice: decimal("client_price", { precision: 10, scale: 2 }).notNull(), // Цена для клиента в KGS
-  name: text("name"), // Название товара
-  size: text("size"), // Опционально
-  color: text("color"), // Опционально
-  notes: text("notes"),
-});
-
 // Отправки (карго)
 export const shipments = pgTable("shipments", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -116,6 +79,7 @@ export const shipments = pgTable("shipments", {
   status: text("status").notNull().default("preparing"), // preparing / shipped
   destination: text("destination"), // Куда едет
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }), // Стоимость доставки в KGS
+  commissionAmount: decimal("commission_amount", { precision: 10, scale: 2 }), // Сумма комиссии в KGS
   notes: text("notes"), //
   createdAt: timestamp("created_at").defaultNow(),
   shippedAt: timestamp("shipped_at"),
@@ -181,44 +145,6 @@ export const storageItems = pgTable("storage_items", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Операции обмена валюты
-export const exchangeOperations = pgTable("exchange_operations", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  clientId: uuid("client_id")
-    .references(() => clients.id)
-    .notNull(),
-  amountForeign: decimal("amount_foreign", {
-    precision: 12,
-    scale: 2,
-  }).notNull(), // Сумма в валюте клиента
-  currencyCode: text("currency_code").notNull(), // Код валюты (RUB, KGS и т.д.)
-  rateReal: decimal("rate_real", { precision: 10, scale: 4 }).notNull(), // Реальный курс
-  rateClient: decimal("rate_client", { precision: 10, scale: 4 }).notNull(), // Курс для клиента
-  amountKgsReal: decimal("amount_kgs_real", {
-    precision: 12,
-    scale: 2,
-  }).notNull(), // Сумма в KGS по реальному курсу
-  amountKgsClient: decimal("amount_kgs_client", {
-    precision: 12,
-    scale: 2,
-  }).notNull(), // Сумма в KGS по курсу клиента
-  createdAt: timestamp("created_at").defaultNow(),
-  notes: text("notes"),
-});
-
-// Баланс клиента (история операций)
-export const balanceTransactions = pgTable("balance_transactions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  clientId: uuid("client_id")
-    .references(() => clients.id)
-    .notNull(),
-  type: text("type").notNull(), // deposit / order / shipping / commission / refund
-  amount: decimal("amount", { precision: 12, scale: 2 }).notNull(), // В KGS
-  referenceId: uuid("reference_id"), // ID заказа/отправки/операции
-  description: text("description"),
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Оплаты заказов (детали)
 export const orderPayments = pgTable("order_payments", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -274,5 +200,8 @@ export const userProfiles = pgTable("user_profiles", {
       { code: "KGS", name: "Киргизский сом" },
     ]),
   defaultCurrencyCode: text("default_currency_code").default("RUB"),
+  commissionRate: decimal("commission_rate", { precision: 5, scale: 2 })
+    .notNull()
+    .default("5"), // Процент комиссии по умолчанию
   createdAt: timestamp("created_at").defaultNow(),
 });

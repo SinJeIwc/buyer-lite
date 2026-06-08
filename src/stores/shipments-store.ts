@@ -18,6 +18,7 @@ export interface Shipment {
   status: string;
   destination: string | null;
   shippingCost: string | null;
+  commissionAmount: string | null;
   notes: string | null;
   createdAt: Date | null;
   shippedAt: Date | null;

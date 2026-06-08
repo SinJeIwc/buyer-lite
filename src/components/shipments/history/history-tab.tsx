@@ -38,6 +38,7 @@ export function HistoryTab() {
   const lastFetched = useShipmentHistoryStore((s) => s.lastFetched);
   const [editShipment, setEditShipment] = useState<Shipment | null>(null);
   const [revertId, setRevertId] = useState<string | null>(null);
+  const [isReverting, setIsReverting] = useState(false);
 
   useEffect(() => {
     // Загружаем только если данные ещё не загружались
@@ -47,11 +48,16 @@ export function HistoryTab() {
   }, [fetchItems, lastFetched]);
 
   async function handleRevert() {
-    if (!revertId) return;
-    await revertShipmentToPreparing(revertId);
-    setRevertId(null);
-    await fetchItems(true);
-    await useShipmentsStore.getState().refresh();
+    if (!revertId || isReverting) return;
+    setIsReverting(true);
+    try {
+      await revertShipmentToPreparing(revertId);
+      setRevertId(null);
+      await fetchItems(true);
+      await useShipmentsStore.getState().refresh();
+    } finally {
+      setIsReverting(false);
+    }
   }
 
   // Группировка по дате
@@ -168,9 +174,9 @@ export function HistoryTab() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={handleRevert}>
-              Вернуть
+            <AlertDialogCancel disabled={isReverting}>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevert} disabled={isReverting}>
+              {isReverting ? "Возврат..." : "Вернуть"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

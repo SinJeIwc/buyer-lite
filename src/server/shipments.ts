@@ -1,9 +1,10 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import {
+  balanceOperations,
   clients,
   shipmentItems,
   shipments,
@@ -42,6 +43,7 @@ export async function getShipments(status?: string) {
       status: shipments.status,
       destination: shipments.destination,
       shippingCost: shipments.shippingCost,
+      commissionAmount: shipments.commissionAmount,
       notes: shipments.notes,
       createdAt: shipments.createdAt,
       shippedAt: shipments.shippedAt,
@@ -177,9 +179,27 @@ export async function updateShipment(
 
 export async function shipShipment(
   id: string,
-  data: { code?: string; notes?: string; shippingCost?: number },
+  data: {
+    code?: string;
+    notes?: string;
+    shippingCost?: number;
+    commissionAmount?: number;
+  },
 ) {
   const userId = await getCurrentUserId();
+
+  // Получаем clientId и проверяем принадлежность
+  const [shipment] = await db
+    .select({
+      clientId: shipments.clientId,
+      shippingCost: shipments.shippingCost,
+    })
+    .from(shipments)
+    .where(and(eq(shipments.id, id), eq(shipments.userId, userId)));
+
+  if (!shipment) throw new Error("Отправка не найдена");
+
+  const commissionAmount = data.commissionAmount ?? 0;
 
   await db
     .update(shipments)
@@ -187,10 +207,51 @@ export async function shipShipment(
       code: data.code || null,
       notes: data.notes || null,
       shippingCost: data.shippingCost?.toFixed(2) || null,
+      commissionAmount:
+        commissionAmount > 0 ? commissionAmount.toFixed(2) : null,
       status: "shipped",
       shippedAt: new Date(),
     })
     .where(and(eq(shipments.id, id), eq(shipments.userId, userId)));
+
+  // Списываем стоимость доставки с баланса клиента
+  const shippingCost = data.shippingCost ?? 0;
+  if (shippingCost > 0) {
+    await db
+      .update(clients)
+      .set({
+        balance: sql`${clients.balance} - ${shippingCost.toFixed(2)}`,
+      })
+      .where(eq(clients.id, shipment.clientId));
+
+    await db.insert(balanceOperations).values({
+      clientId: shipment.clientId,
+      userId,
+      type: "shipping",
+      amount: (-shippingCost).toFixed(2),
+      description: `Доставка${data.code ? ` #${data.code}` : ""}`,
+      referenceId: id,
+    });
+  }
+
+  // Списываем комиссию с баланса клиента
+  if (commissionAmount > 0) {
+    await db
+      .update(clients)
+      .set({
+        balance: sql`${clients.balance} - ${commissionAmount.toFixed(2)}`,
+      })
+      .where(eq(clients.id, shipment.clientId));
+
+    await db.insert(balanceOperations).values({
+      clientId: shipment.clientId,
+      userId,
+      type: "commission",
+      amount: (-commissionAmount).toFixed(2),
+      description: `Комиссия${data.code ? ` #${data.code}` : ""}`,
+      referenceId: id,
+    });
+  }
 
   revalidatePath("/shipments");
 }
@@ -198,10 +259,64 @@ export async function shipShipment(
 export async function revertShipmentToPreparing(id: string) {
   const userId = await getCurrentUserId();
 
+  // Получаем данные отправки до отката
+  const [shipment] = await db
+    .select({
+      clientId: shipments.clientId,
+      shippingCost: shipments.shippingCost,
+      commissionAmount: shipments.commissionAmount,
+      code: shipments.code,
+      status: shipments.status,
+    })
+    .from(shipments)
+    .where(and(eq(shipments.id, id), eq(shipments.userId, userId)));
+
+  if (!shipment) throw new Error("Отправка не найдена");
+  if (shipment.status !== "shipped")
+    throw new Error("Отправка уже в статусе подготовки");
+
   await db
     .update(shipments)
-    .set({ status: "preparing", shippedAt: null })
+    .set({ status: "preparing", shippedAt: null, commissionAmount: null })
     .where(and(eq(shipments.id, id), eq(shipments.userId, userId)));
+
+  // Возвращаем стоимость доставки на баланс
+  const shippingCost = parseFloat(shipment.shippingCost || "0");
+  if (shippingCost > 0) {
+    await db
+      .update(clients)
+      .set({
+        balance: sql`${clients.balance} + ${shippingCost.toFixed(2)}`,
+      })
+      .where(eq(clients.id, shipment.clientId));
+
+    await db.insert(balanceOperations).values({
+      clientId: shipment.clientId,
+      userId,
+      type: "shipping",
+      amount: shippingCost.toFixed(2),
+      description: `Возврат за доставку${shipment.code ? ` #${shipment.code}` : ""}`,
+    });
+  }
+
+  // Возвращаем комиссию на баланс
+  const commissionAmount = parseFloat(shipment.commissionAmount || "0");
+  if (commissionAmount > 0) {
+    await db
+      .update(clients)
+      .set({
+        balance: sql`${clients.balance} + ${commissionAmount.toFixed(2)}`,
+      })
+      .where(eq(clients.id, shipment.clientId));
+
+    await db.insert(balanceOperations).values({
+      clientId: shipment.clientId,
+      userId,
+      type: "commission",
+      amount: commissionAmount.toFixed(2),
+      description: `Возврат комиссии${shipment.code ? ` #${shipment.code}` : ""}`,
+    });
+  }
 
   revalidatePath("/shipments");
 }

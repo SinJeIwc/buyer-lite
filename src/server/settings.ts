@@ -169,3 +169,27 @@ export async function setDefaultCurrency(code: string) {
 
   revalidatePath("/settings");
 }
+
+// ==================== Ставка комиссии ====================
+
+export async function getCommissionRate(): Promise<number> {
+  const userId = await getCurrentUserId();
+
+  const [profile] = await db
+    .select({ commissionRate: userProfiles.commissionRate })
+    .from(userProfiles)
+    .where(eq(userProfiles.id, userId));
+
+  return parseFloat(profile?.commissionRate ?? "5");
+}
+
+export async function setCommissionRate(rate: number) {
+  const userId = await getCurrentUserId();
+
+  await db
+    .update(userProfiles)
+    .set({ commissionRate: rate.toFixed(2) })
+    .where(eq(userProfiles.id, userId));
+
+  revalidatePath("/settings");
+}

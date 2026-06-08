@@ -4,7 +4,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import {
-  balanceTransactions,
+  balanceOperations,
   clients,
   orderPaymentItems,
   orderPayments,
@@ -302,7 +302,7 @@ export async function paySupplierItems(data: {
     }
   }
 
-  // Списываем с баланса клиента
+  // Списываем с баланса клиента (клиентскую цену)
   const clientPrice = data.clientPriceTotal;
   await db
     .update(clients)
@@ -310,14 +310,6 @@ export async function paySupplierItems(data: {
       balance: sql`${clients.balance} - ${clientPrice.toFixed(2)}`,
     })
     .where(eq(clients.id, data.clientId));
-
-  // Записываем операцию
-  await db.insert(balanceTransactions).values({
-    clientId: data.clientId,
-    type: "order",
-    amount: (-clientPrice).toFixed(2),
-    description: `Оплата товаров (${data.items.length} позиций)`,
-  });
 
   // Сохраняем детали оплаты для истории
   const [payment] = await db
@@ -331,7 +323,7 @@ export async function paySupplierItems(data: {
     })
     .returning();
 
-  // Сохраняем товары оплаты (цена закупки = цена для байера, итоговая сумма в order_payments)
+  // Сохраняем товары оплаты
   if (_itemDetails.length > 0) {
     await db.insert(orderPaymentItems).values(
       _itemDetails.map((item) => ({
@@ -344,6 +336,16 @@ export async function paySupplierItems(data: {
       })),
     );
   }
+
+  // Записываем операцию в историю баланса
+  await db.insert(balanceOperations).values({
+    clientId: data.clientId,
+    userId,
+    type: "order",
+    amount: (-clientPrice).toFixed(2),
+    description: `Оплата товаров (${data.items.length} позиций)`,
+    referenceId: payment.id,
+  });
 
   revalidatePath("/orders");
   revalidatePath("/clients");

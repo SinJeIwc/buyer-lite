@@ -1,9 +1,16 @@
 "use server";
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { balanceOperations, clients } from "@/lib/db/schema";
+import {
+  balanceOperations,
+  clients,
+  orderPaymentItems,
+  orderPayments,
+  shipments,
+  suppliers,
+} from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
 async function getCurrentUserId(): Promise<string> {
@@ -138,9 +145,6 @@ export async function createManualOperation(data: ManualOperationData) {
   revalidatePath("/clients");
 }
 
-// Импорт sql из drizzle-orm
-import { sql } from "drizzle-orm";
-
 // ==================== История баланса (все клиенты) ====================
 
 export interface BalanceOperationWithClient {
@@ -150,6 +154,7 @@ export interface BalanceOperationWithClient {
   type: string;
   amount: string;
   description: string | null;
+  referenceId: string | null;
   amountForeign: string | null;
   currencyCode: string | null;
   rateReal: string | null;
@@ -170,6 +175,7 @@ export async function getBalanceHistory(): Promise<
       type: balanceOperations.type,
       amount: balanceOperations.amount,
       description: balanceOperations.description,
+      referenceId: balanceOperations.referenceId,
       amountForeign: balanceOperations.amountForeign,
       currencyCode: balanceOperations.currencyCode,
       rateReal: balanceOperations.rateReal,
@@ -180,4 +186,87 @@ export async function getBalanceHistory(): Promise<
     .leftJoin(clients, eq(balanceOperations.clientId, clients.id))
     .where(eq(balanceOperations.userId, userId))
     .orderBy(desc(balanceOperations.createdAt));
+}
+
+// ==================== Детали транзакции ====================
+
+export interface OrderPaymentDetail {
+  id: string;
+  supplierName: string | null;
+  buyerTotal: string;
+  purchaseTotal: string;
+  createdAt: Date | null;
+  items: Array<{
+    id: string;
+    name: string;
+    size: string | null;
+    quantity: number;
+    purchasePrice: string;
+    buyerPrice: string;
+  }>;
+}
+
+export async function getOrderPaymentDetail(
+  paymentId: string,
+): Promise<OrderPaymentDetail | null> {
+  const userId = await getCurrentUserId();
+
+  const [payment] = await db
+    .select({
+      id: orderPayments.id,
+      supplierName: suppliers.name,
+      buyerTotal: orderPayments.buyerTotal,
+      purchaseTotal: orderPayments.purchaseTotal,
+      createdAt: orderPayments.createdAt,
+    })
+    .from(orderPayments)
+    .leftJoin(suppliers, eq(orderPayments.supplierId, suppliers.id))
+    .where(
+      and(eq(orderPayments.id, paymentId), eq(orderPayments.userId, userId)),
+    );
+
+  if (!payment) return null;
+
+  const items = await db
+    .select({
+      id: orderPaymentItems.id,
+      name: orderPaymentItems.name,
+      size: orderPaymentItems.size,
+      quantity: orderPaymentItems.quantity,
+      purchasePrice: orderPaymentItems.purchasePrice,
+      buyerPrice: orderPaymentItems.buyerPrice,
+    })
+    .from(orderPaymentItems)
+    .where(eq(orderPaymentItems.paymentId, payment.id));
+
+  return { ...payment, items };
+}
+
+export interface ShipmentDetail {
+  id: string;
+  code: string | null;
+  destination: string | null;
+  shippingCost: string | null;
+  notes: string | null;
+  shippedAt: Date | null;
+}
+
+export async function getShipmentDetail(
+  shipmentId: string,
+): Promise<ShipmentDetail | null> {
+  const userId = await getCurrentUserId();
+
+  const [shipment] = await db
+    .select({
+      id: shipments.id,
+      code: shipments.code,
+      destination: shipments.destination,
+      shippingCost: shipments.shippingCost,
+      notes: shipments.notes,
+      shippedAt: shipments.shippedAt,
+    })
+    .from(shipments)
+    .where(and(eq(shipments.id, shipmentId), eq(shipments.userId, userId)));
+
+  return shipment ?? null;
 }

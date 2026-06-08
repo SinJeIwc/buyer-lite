@@ -173,13 +173,45 @@ export function ShipmentDocument({ shipment }: ShipmentDocumentProps) {
         {/* Итого */}
         <View style={styles.totalsTable}>
           <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>Доставка:</Text>
-            <Text>{shippingCost.toLocaleString("ru-RU")}с</Text>
+            <Text style={styles.totalsLabel}>Товары:</Text>
+            <Text>{totalCost.toLocaleString("ru-RU")}с</Text>
           </View>
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsBold}>Товары:</Text>
+          {shippingCost > 0 && (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Доставка:</Text>
+              <Text>{shippingCost.toLocaleString("ru-RU")}с</Text>
+            </View>
+          )}
+          {parseFloat(shipment.commissionAmount || "0") > 0 && (
+            <View style={styles.totalsRow}>
+              <Text style={styles.totalsLabel}>Комиссия:</Text>
+              <Text>
+                {parseFloat(shipment.commissionAmount || "0").toLocaleString(
+                  "ru-RU",
+                )}
+                с
+              </Text>
+            </View>
+          )}
+          <View
+            style={[
+              styles.totalsRow,
+              {
+                marginTop: 4,
+                borderTopWidth: 1,
+                borderTopColor: "#e5e5e5",
+                paddingTop: 4,
+              },
+            ]}
+          >
+            <Text style={styles.totalsBold}>Итого:</Text>
             <Text style={styles.totalsBold}>
-              {totalCost.toLocaleString("ru-RU")}с
+              {(
+                totalCost +
+                shippingCost +
+                parseFloat(shipment.commissionAmount || "0")
+              ).toLocaleString("ru-RU")}
+              с
             </Text>
           </View>
         </View>
