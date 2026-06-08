@@ -140,3 +140,44 @@ export async function createManualOperation(data: ManualOperationData) {
 
 // Импорт sql из drizzle-orm
 import { sql } from "drizzle-orm";
+
+// ==================== История баланса (все клиенты) ====================
+
+export interface BalanceOperationWithClient {
+  id: string;
+  clientId: string;
+  clientName: string | null;
+  type: string;
+  amount: string;
+  description: string | null;
+  amountForeign: string | null;
+  currencyCode: string | null;
+  rateReal: string | null;
+  rateClient: string | null;
+  createdAt: Date | null;
+}
+
+export async function getBalanceHistory(): Promise<
+  BalanceOperationWithClient[]
+> {
+  const userId = await getCurrentUserId();
+
+  return await db
+    .select({
+      id: balanceOperations.id,
+      clientId: balanceOperations.clientId,
+      clientName: clients.name,
+      type: balanceOperations.type,
+      amount: balanceOperations.amount,
+      description: balanceOperations.description,
+      amountForeign: balanceOperations.amountForeign,
+      currencyCode: balanceOperations.currencyCode,
+      rateReal: balanceOperations.rateReal,
+      rateClient: balanceOperations.rateClient,
+      createdAt: balanceOperations.createdAt,
+    })
+    .from(balanceOperations)
+    .leftJoin(clients, eq(balanceOperations.clientId, clients.id))
+    .where(eq(balanceOperations.userId, userId))
+    .orderBy(desc(balanceOperations.createdAt));
+}

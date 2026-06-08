@@ -2,6 +2,7 @@
 
 import {
   Ban,
+  Clock,
   MapPin,
   Pencil,
   PhoneIcon,
@@ -10,6 +11,7 @@ import {
   Star,
   Trash2,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DeleteDialog } from "@/components/ui/delete-dialog";
@@ -95,6 +97,11 @@ export function ClientsList() {
           <Plus className="w-4 h-4 mr-1" />
           Клиент
         </Button>
+        <Link href="/clients/balance-history">
+          <Button variant="outline" size="icon">
+            <Clock className="w-4 h-4" />
+          </Button>
+        </Link>
         <Button
           variant="outline"
           size="icon"

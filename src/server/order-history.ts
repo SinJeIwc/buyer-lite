@@ -1,6 +1,6 @@
 "use server";
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import {
   clients,
@@ -108,10 +108,7 @@ export async function getOrderHistoryStats(): Promise<OrderHistoryStats> {
       totalItems: sql<string>`COALESCE(SUM(${orderPaymentItems.quantity}), 0)`,
     })
     .from(orderPaymentItems)
-    .leftJoin(
-      orderPayments,
-      eq(orderPaymentItems.paymentId, orderPayments.id),
-    )
+    .leftJoin(orderPayments, eq(orderPaymentItems.paymentId, orderPayments.id))
     .where(eq(orderPayments.userId, userId));
 
   return {

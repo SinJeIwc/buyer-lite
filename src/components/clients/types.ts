@@ -14,3 +14,16 @@ export interface ClientFormData {
   city: string;
   notes: string;
 }
+
+/** Тип операции по балансу */
+import type { BalanceOperationType } from "./schemas";
+export type { BalanceOperationType };
+
+/** Метка типа операции */
+export const balanceOperationLabels: Record<BalanceOperationType, string> = {
+  deposit: "Пополнение",
+  order: "Оплата товара",
+  shipping: "Оплата доставки",
+  commission: "Комиссия",
+  manual: "Ручная корректировка",
+};

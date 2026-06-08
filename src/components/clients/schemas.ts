@@ -1,5 +1,33 @@
 import { z } from "zod";
 
+// ── Тип операции по балансу ─────────────────────────────────────
+
+export const balanceOperationTypeSchema = z.enum([
+  "deposit",
+  "order",
+  "shipping",
+  "commission",
+  "manual",
+]);
+export type BalanceOperationType = z.infer<typeof balanceOperationTypeSchema>;
+
+// ── Операция по балансу (для рантайм-валидации ответа сервера) ──
+
+export const balanceOperationSchema = z.object({
+  id: z.string(),
+  clientId: z.string(),
+  clientName: z.string().nullable(),
+  type: balanceOperationTypeSchema,
+  amount: z.string(),
+  description: z.string().nullable(),
+  amountForeign: z.string().nullable(),
+  currencyCode: z.string().nullable(),
+  rateReal: z.string().nullable(),
+  rateClient: z.string().nullable(),
+  createdAt: z.date().nullable(),
+});
+export type BalanceOperation = z.infer<typeof balanceOperationSchema>;
+
 // ── Создание / редактирование клиента ──────────────────────────
 
 export const clientFormSchema = z.object({

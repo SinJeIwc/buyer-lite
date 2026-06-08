@@ -1,6 +1,13 @@
 "use client";
 
-import { Document, Font, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+  Document,
+  Font,
+  Page,
+  StyleSheet,
+  Text,
+  View,
+} from "@react-pdf/renderer";
 import type { Shipment } from "@/stores/shipments-store";
 
 // Регистрируем Roboto — поддерживает кириллицу
@@ -98,8 +105,7 @@ interface ShipmentDocumentProps {
 
 export function ShipmentDocument({ shipment }: ShipmentDocumentProps) {
   const totalCost = shipment.items.reduce(
-    (sum, item) =>
-      sum + parseFloat(item.purchasePrice || "0") * item.quantity,
+    (sum, item) => sum + parseFloat(item.purchasePrice || "0") * item.quantity,
     0,
   );
   const shippingCost = parseFloat(shipment.shippingCost || "0");
@@ -125,9 +131,7 @@ export function ShipmentDocument({ shipment }: ShipmentDocumentProps) {
         <View style={styles.infoTable}>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Клиент:</Text>
-            <Text style={styles.infoValue}>
-              {shipment.clientName || "—"}
-            </Text>
+            <Text style={styles.infoValue}>{shipment.clientName || "—"}</Text>
           </View>
           {shipment.destination && (
             <View style={styles.infoRow}>
@@ -146,15 +150,9 @@ export function ShipmentDocument({ shipment }: ShipmentDocumentProps) {
         {/* Товары */}
         <Text style={styles.sectionTitle}>Товары</Text>
         <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, styles.colName]}>
-            Название
-          </Text>
-          <Text style={[styles.tableHeaderText, styles.colQty]}>
-            Кол-во
-          </Text>
-          <Text style={[styles.tableHeaderText, styles.colSum]}>
-            Сумма
-          </Text>
+          <Text style={[styles.tableHeaderText, styles.colName]}>Название</Text>
+          <Text style={[styles.tableHeaderText, styles.colQty]}>Кол-во</Text>
+          <Text style={[styles.tableHeaderText, styles.colSum]}>Сумма</Text>
         </View>
         {shipment.items.map((item) => (
           <View key={item.id} style={styles.tableRow}>

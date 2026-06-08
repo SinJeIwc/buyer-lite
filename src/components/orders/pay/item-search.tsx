@@ -105,7 +105,9 @@ export function ItemSearch({
                 <div className="truncate">
                   <span>{item.name}</span>
                   {item.size && (
-                    <span className="text-muted-foreground ml-1">({item.size})</span>
+                    <span className="text-muted-foreground ml-1">
+                      ({item.size})
+                    </span>
                   )}
                 </div>
                 <span className="text-muted-foreground shrink-0 ml-2">
@@ -118,7 +120,9 @@ export function ItemSearch({
 
         {query && filteredItems.length === 0 && (
           <div className="absolute left-0 right-0 top-full mt-1 border rounded-lg z-50 bg-popover shadow-md">
-            <p className="px-3 py-2 text-sm text-muted-foreground">Товары не найдены</p>
+            <p className="px-3 py-2 text-sm text-muted-foreground">
+              Товары не найдены
+            </p>
           </div>
         )}
       </div>

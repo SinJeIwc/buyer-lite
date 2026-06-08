@@ -1,8 +1,8 @@
 "use client";
 
+import type { SelectedItem } from "../types";
 import { ExistingItemCard } from "./existing-item-card";
 import { NewItemCard } from "./new-item-card";
-import type { SelectedItem } from "../types";
 
 export type { SelectedItem };
 

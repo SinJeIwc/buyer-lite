@@ -10,15 +10,16 @@ interface BaseStore<T> {
 
 export function createFetchStore<T>(
   fetcher: () => Promise<T[]>,
-  cacheMs = 5 * 60 * 1000,
+  // cacheMs = 5 * 60 * 1000,
 ) {
   const store: StateCreator<BaseStore<T>> = (set, get) => ({
     items: [],
     isLoading: false,
     lastFetched: null,
-
-    fetchItems: async (force = false) => {
-      const { lastFetched, isLoading } = get();
+    //force = false
+    fetchItems: async () => {
+      // lastFetched,
+      const { isLoading } = get();
       // if (!force && lastFetched && Date.now() - lastFetched < cacheMs) return;
       if (isLoading) return;
 
