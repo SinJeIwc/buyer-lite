@@ -9,19 +9,13 @@ import { LengthZero } from "@/components/ui/length-zero";
 import { useShipmentHistoryStore } from "@/stores/shipment-history-store";
 import { useShipmentsStore } from "@/stores/shipments-store";
 import { type StorageItem, useStorageStore } from "@/stores/storage-store";
+import type { CartItem } from "../types";
 import { CartFab } from "./cart-fab";
 import { CreateShipmentDialog } from "./create-shipment-dialog";
 import { EditStorageDialog } from "./edit-storage-dialog";
 import { StorageItemCard } from "./storage-item-card";
 
-export interface CartItem {
-  storageItemId: string;
-  name: string;
-  size: string | null;
-  maxQuantity: number;
-  quantity: number;
-  clientId: string;
-}
+export type { CartItem };
 
 export function StorageTab() {
   const items = useStorageStore((s) => s.items);

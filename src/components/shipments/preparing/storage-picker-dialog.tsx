@@ -17,15 +17,7 @@ import { Item, ItemContent, ItemTitle } from "@/components/ui/item";
 import { LengthZero } from "@/components/ui/length-zero";
 import { cn } from "@/lib/utils";
 import type { StorageItem } from "@/stores/storage-store";
-
-export interface PickedItem {
-  storageItemId: string;
-  name: string;
-  size: string | null;
-  maxQuantity: number;
-  quantity: number;
-  clientId: string;
-}
+import type { CartItem } from "../types";
 
 interface StoragePickerDialogProps {
   open: boolean;
@@ -33,7 +25,7 @@ interface StoragePickerDialogProps {
   items: StorageItem[];
   isLoading: boolean;
   excludeIds: Set<string>;
-  onConfirm: (picked: PickedItem[]) => void;
+  onConfirm: (picked: CartItem[]) => void;
 }
 
 export function StoragePickerDialog({
@@ -45,7 +37,7 @@ export function StoragePickerDialog({
   onConfirm,
 }: StoragePickerDialogProps) {
   const [activeClientId, setActiveClientId] = useState<string | null>(null);
-  const [cart, setCart] = useState<Map<string, PickedItem>>(new Map());
+  const [cart, setCart] = useState<Map<string, CartItem>>(new Map());
 
   const availableItems = useMemo(
     () => items.filter((i) => !excludeIds.has(i.id)),

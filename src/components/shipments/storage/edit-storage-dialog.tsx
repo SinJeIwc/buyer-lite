@@ -1,6 +1,8 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { AutocompleteInput } from "@/components/ui/autocomplete-input";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +26,7 @@ import { getNameSuggestions, getSizeSuggestions } from "@/lib/item-suggestions";
 import { updateStorageItem } from "@/server/shipments";
 import { useClientsStore } from "@/stores/clients-store";
 import type { StorageItem } from "@/stores/storage-store";
+import { type EditStorageItemValues, editStorageItemSchema } from "../schemas";
 
 interface EditStorageDialogProps {
   open: boolean;
@@ -46,52 +49,61 @@ export function EditStorageDialog({
   const clientsList = useClientsStore((s) => s.items);
   const fetchClients = useClientsStore((s) => s.fetchItems);
   const isLoadingClients = useClientsStore((s) => s.isLoading);
-  const [clientId, setClientId] = useState<string>(item.clientId);
-  const [name, setName] = useState(item.name);
-  const [size, setSize] = useState(item.size || "");
-  const [quantity, setQuantity] = useState(item.quantity.toString());
-  const [purchasePrice, setPurchasePrice] = useState(item.purchasePrice);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const form = useForm<EditStorageItemValues>({
+    resolver: zodResolver(editStorageItemSchema),
+    mode: "onChange",
+    defaultValues: {
+      clientId: item.clientId,
+      name: item.name,
+      size: item.size || "",
+      quantity: item.quantity,
+      purchasePrice: parseFloat(item.purchasePrice),
+    },
+  });
 
   useEffect(() => {
     if (open) {
       fetchClients();
-      setClientId(item.clientId);
-      setName(item.name);
-      setSize(item.size || "");
-      setQuantity(item.quantity.toString());
-      setPurchasePrice(item.purchasePrice);
+      form.reset({
+        clientId: item.clientId,
+        name: item.name,
+        size: item.size || "",
+        quantity: item.quantity,
+        purchasePrice: parseFloat(item.purchasePrice),
+      });
     }
-  }, [open, item, fetchClients]);
+  }, [open, item, fetchClients, form]);
 
   const clientOptions: ClientOption[] = clientsList
     .filter((c) => !c.isBlocked)
     .map((c) => ({ label: c.name, value: c.id }));
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!name.trim()) return;
-
-    setIsLoading(true);
+  async function handleSubmit(values: EditStorageItemValues) {
+    setIsSaving(true);
     try {
       await updateStorageItem(item.id, {
-        clientId,
-        name: name.trim(),
-        size: size.trim() || undefined,
-        quantity: parseInt(quantity, 10) || 0,
-        purchasePrice: parseFloat(purchasePrice) || 0,
+        clientId: values.clientId,
+        name: values.name.trim(),
+        size: values.size?.trim() || undefined,
+        quantity: values.quantity,
+        purchasePrice: values.purchasePrice,
       });
       onOpenChange(false);
       onSuccess();
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="flex flex-col gap-4"
+        >
           <DialogHeader>
             <DialogTitle>Редактировать товар</DialogTitle>
           </DialogHeader>
@@ -101,12 +113,16 @@ export function EditStorageDialog({
               <FieldLabel>Клиент</FieldLabel>
               <Select
                 items={clientOptions}
-                value={clientId}
-                onValueChange={(v) => v && setClientId(v)}
+                value={form.watch("clientId")}
+                onValueChange={(v) => v && form.setValue("clientId", v)}
                 disabled={isLoadingClients}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Выберите клиента" />
+                  <SelectValue
+                    placeholder={
+                      isLoadingClients ? "Загрузка..." : "Выберите клиента"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -122,49 +138,55 @@ export function EditStorageDialog({
             <Field>
               <FieldLabel>Название</FieldLabel>
               <AutocompleteInput
-                value={name}
-                onChange={setName}
-                suggestions={getNameSuggestions(name)}
+                value={form.watch("name")}
+                onChange={(v) => form.setValue("name", v)}
+                suggestions={getNameSuggestions(form.watch("name"))}
                 placeholder="Юбка, Клеш брюки..."
               />
+              {form.formState.errors.name && (
+                <span className="text-xs text-destructive">
+                  {form.formState.errors.name.message}
+                </span>
+              )}
             </Field>
             <Field>
               <FieldLabel>Размер</FieldLabel>
               <AutocompleteInput
-                value={size}
-                onChange={setSize}
-                suggestions={getSizeSuggestions(size)}
+                value={form.watch("size") || ""}
+                onChange={(v) => form.setValue("size", v)}
+                suggestions={getSizeSuggestions(form.watch("size") || "")}
                 placeholder="32-34, M..."
               />
             </Field>
             <div className="grid grid-cols-2 gap-2">
               <Field>
                 <FieldLabel>Количество</FieldLabel>
-                <Input
-                  type="number"
-                  min="1"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                />
+                <Input type="number" min="1" {...form.register("quantity")} />
+                {form.formState.errors.quantity && (
+                  <span className="text-xs text-destructive">
+                    {form.formState.errors.quantity.message}
+                  </span>
+                )}
               </Field>
               <Field>
                 <FieldLabel>Цена за штуку</FieldLabel>
                 <Input
                   type="number"
                   step="0.01"
-                  value={purchasePrice}
-                  onChange={(e) => setPurchasePrice(e.target.value)}
+                  {...form.register("purchasePrice")}
                 />
+                {form.formState.errors.purchasePrice && (
+                  <span className="text-xs text-destructive">
+                    {form.formState.errors.purchasePrice.message}
+                  </span>
+                )}
               </Field>
             </div>
           </FieldGroup>
 
           <DialogFooter>
-            <Button
-              type="submit"
-              disabled={isLoading || !name.trim() || !clientId}
-            >
-              {isLoading ? "Сохранение..." : "Сохранить"}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Сохранение..." : "Сохранить"}
             </Button>
           </DialogFooter>
         </form>

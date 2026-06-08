@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/item";
 import { cn } from "@/lib/utils";
 import type { StorageItem } from "@/stores/storage-store";
-import type { CartItem } from "./storage-tab";
+import type { CartItem } from "../types";
 
 interface StorageItemCardProps {
   item: StorageItem;

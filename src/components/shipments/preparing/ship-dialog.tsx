@@ -1,6 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +14,7 @@ import {
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { shipShipment } from "@/server/shipments";
+import { type ShippedShipmentValues, shippedShipmentSchema } from "../schemas";
 
 interface ShipDialogProps {
   open: boolean;
@@ -28,31 +31,50 @@ export function ShipDialog({
   defaultCode,
   onSuccess,
 }: ShipDialogProps) {
-  const [code, setCode] = useState(defaultCode || "");
-  const [notes, setNotes] = useState("");
-  const [shippingCost, setShippingCost] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsLoading(true);
+  const form = useForm<ShippedShipmentValues>({
+    resolver: zodResolver(shippedShipmentSchema),
+    mode: "onChange",
+    defaultValues: {
+      code: defaultCode || "",
+      shippingCost: 0,
+      notes: "",
+    },
+  });
+
+  useEffect(() => {
+    if (open) {
+      form.reset({
+        code: defaultCode || "",
+        shippingCost: 0,
+        notes: "",
+      });
+    }
+  }, [open, defaultCode, form]);
+
+  async function handleSubmit(values: ShippedShipmentValues) {
+    setIsSaving(true);
     try {
       await shipShipment(shipmentId, {
-        code: code || undefined,
-        notes: notes || undefined,
-        shippingCost: parseFloat(shippingCost) || undefined,
+        code: values.code || undefined,
+        notes: values.notes || undefined,
+        shippingCost: values.shippingCost || undefined,
       });
       onOpenChange(false);
       onSuccess();
     } finally {
-      setIsLoading(false);
+      setIsSaving(false);
     }
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="flex flex-col gap-4"
+        >
           <DialogHeader>
             <DialogTitle>Отправить</DialogTitle>
           </DialogHeader>
@@ -60,11 +82,7 @@ export function ShipDialog({
           <FieldGroup>
             <Field>
               <FieldLabel>ID отправки</FieldLabel>
-              <Input
-                placeholder="12345"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-              />
+              <Input placeholder="12345" {...form.register("code")} />
             </Field>
             <Field>
               <FieldLabel>Стоимость доставки (KGS)</FieldLabel>
@@ -73,23 +91,18 @@ export function ShipDialog({
                 step="0.01"
                 min="0"
                 placeholder="0"
-                value={shippingCost}
-                onChange={(e) => setShippingCost(e.target.value)}
+                {...form.register("shippingCost")}
               />
             </Field>
             <Field>
               <FieldLabel>Комментарий</FieldLabel>
-              <Input
-                placeholder="Комментарий"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
+              <Input placeholder="Комментарий" {...form.register("notes")} />
             </Field>
           </FieldGroup>
 
           <DialogFooter>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? "Отправка..." : "Подтвердить отправку"}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Отправка..." : "Подтвердить отправку"}
             </Button>
           </DialogFooter>
         </form>

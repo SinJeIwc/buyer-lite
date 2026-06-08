@@ -19,7 +19,7 @@ import { deleteShipment } from "@/server/shipments";
 import { useShipmentHistoryStore } from "@/stores/shipment-history-store";
 import { type Shipment, useShipmentsStore } from "@/stores/shipments-store";
 import { useStorageStore } from "@/stores/storage-store";
-import { EditShipmentDialog } from "./edit-shipment-dialog";
+import { EditPreparingDialog } from "./edit-preparing-dialog";
 import { ShipDialog } from "./ship-dialog";
 
 export function PreparingTab() {
@@ -98,7 +98,7 @@ export function PreparingTab() {
       )}
 
       {editShipment && (
-        <EditShipmentDialog
+        <EditPreparingDialog
           open={!!editShipment}
           onOpenChange={() => setEditShipment(null)}
           shipment={editShipment}

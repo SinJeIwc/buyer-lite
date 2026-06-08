@@ -19,7 +19,7 @@ export function createFetchStore<T>(
 
     fetchItems: async (force = false) => {
       const { lastFetched, isLoading } = get();
-      if (!force && lastFetched && Date.now() - lastFetched < cacheMs) return;
+      // if (!force && lastFetched && Date.now() - lastFetched < cacheMs) return;
       if (isLoading) return;
 
       set({ isLoading: true });

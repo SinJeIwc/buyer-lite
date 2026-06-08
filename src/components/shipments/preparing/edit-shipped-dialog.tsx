@@ -17,19 +17,19 @@ import { updateShipment } from "@/server/shipments";
 import type { Shipment } from "@/stores/shipments-store";
 import { type ShippedShipmentValues, shippedShipmentSchema } from "../schemas";
 
-interface HistoryEditDialogProps {
+interface EditShippedDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   shipment: Shipment;
   onSuccess: () => void;
 }
 
-export function HistoryEditDialog({
+export function EditShippedDialog({
   open,
   onOpenChange,
   shipment,
   onSuccess,
-}: HistoryEditDialogProps) {
+}: EditShippedDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<ShippedShipmentValues>({
