@@ -2,6 +2,16 @@
 
 import { Pencil, RotateCcw } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { IsLoading } from "@/components/ui/is-loading";
 import {
@@ -19,19 +29,27 @@ import { useShipmentHistoryStore } from "@/stores/shipment-history-store";
 import type { Shipment } from "@/stores/shipments-store";
 import { useShipmentsStore } from "@/stores/shipments-store";
 import { HistoryEditDialog } from "./history-edit-dialog";
+import { ShipmentReportButton } from "./shipment-report-button";
 
 export function HistoryTab() {
   const shipments = useShipmentHistoryStore((s) => s.items);
   const isLoading = useShipmentHistoryStore((s) => s.isLoading);
   const fetchItems = useShipmentHistoryStore((s) => s.fetchItems);
+  const lastFetched = useShipmentHistoryStore((s) => s.lastFetched);
   const [editShipment, setEditShipment] = useState<Shipment | null>(null);
+  const [revertId, setRevertId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    // Загружаем только если данные ещё не загружались
+    if (!lastFetched) {
+      fetchItems(true);
+    }
+  }, [fetchItems, lastFetched]);
 
-  async function handleRevert(id: string) {
-    await revertShipmentToPreparing(id);
+  async function handleRevert() {
+    if (!revertId) return;
+    await revertShipmentToPreparing(revertId);
+    setRevertId(null);
     await fetchItems(true);
     await useShipmentsStore.getState().refresh();
   }
@@ -78,7 +96,7 @@ export function HistoryTab() {
                     {shipment.code && (
                       <span className="ml-1">#{shipment.code}</span>
                     )}
-                    <span className="flex gap-x-3 gap-y-0.5 text-xs">
+                    <span className="grid gap-x-3 gap-y-0.5 text-xs">
                       {shipment.items.map((item) => (
                         <span key={item.id}>
                           {item.name}
@@ -90,6 +108,7 @@ export function HistoryTab() {
                 </ItemContent>
 
                 <ItemActions>
+                  <ShipmentReportButton shipment={shipment} />
                   <Button
                     variant="ghost"
                     size="icon"
@@ -102,7 +121,7 @@ export function HistoryTab() {
                     variant="ghost"
                     size="icon"
                     className="size-8"
-                    onClick={() => handleRevert(shipment.id)}
+                    onClick={() => setRevertId(shipment.id)}
                   >
                     <RotateCcw className="size-4" />
                   </Button>
@@ -139,6 +158,23 @@ export function HistoryTab() {
           onSuccess={() => fetchItems(true)}
         />
       )}
+
+      <AlertDialog open={!!revertId} onOpenChange={() => setRevertId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Вернуть в «Готовится»?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Отправка будет возвращена в статус подготовки.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRevert}>
+              Вернуть
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

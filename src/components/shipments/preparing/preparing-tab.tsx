@@ -109,8 +109,7 @@ export function PreparingTab() {
         <ShipDialog
           open={!!shipShipment}
           onOpenChange={() => setShipShipment(null)}
-          shipmentId={shipShipment.id}
-          defaultCode={shipShipment.code}
+          shipment={shipShipment}
           onSuccess={() => {
             refresh();
             useShipmentHistoryStore.getState().refresh();

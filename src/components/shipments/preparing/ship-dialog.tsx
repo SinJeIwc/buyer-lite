@@ -11,24 +11,28 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { shipShipment } from "@/server/shipments";
+import type { Shipment } from "@/stores/shipments-store";
 import { type ShippedShipmentValues, shippedShipmentSchema } from "../schemas";
 
 interface ShipDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  shipmentId: string;
-  defaultCode?: string | null;
+  shipment: Shipment;
   onSuccess: () => void;
 }
 
 export function ShipDialog({
   open,
   onOpenChange,
-  shipmentId,
-  defaultCode,
+  shipment,
   onSuccess,
 }: ShipDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
@@ -37,26 +41,26 @@ export function ShipDialog({
     resolver: zodResolver(shippedShipmentSchema),
     mode: "onChange",
     defaultValues: {
-      code: defaultCode || "",
-      shippingCost: undefined,
-      notes: "",
+      code: shipment.code || "",
+      shippingCost: 0,
+      notes: shipment.notes || "",
     },
   });
 
   useEffect(() => {
     if (open) {
       form.reset({
-        code: defaultCode || "",
-        shippingCost: undefined,
-        notes: "",
+        code: shipment.code || "",
+        shippingCost: 0,
+        notes: shipment.notes || "",
       });
     }
-  }, [open, defaultCode, form]);
+  }, [open, shipment, form]);
 
   async function handleSubmit(values: ShippedShipmentValues) {
     setIsSaving(true);
     try {
-      await shipShipment(shipmentId, {
+      await shipShipment(shipment.id, {
         code: values.code || undefined,
         notes: values.notes || undefined,
         shippingCost: values.shippingCost,
@@ -83,11 +87,6 @@ export function ShipDialog({
             <Field>
               <FieldLabel>ID отправки</FieldLabel>
               <Input placeholder="12345" {...form.register("code")} />
-              {form.formState.errors.code && (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.code.message}
-                </span>
-              )}
             </Field>
             <Field>
               <FieldLabel>Стоимость доставки</FieldLabel>
@@ -98,11 +97,9 @@ export function ShipDialog({
                 placeholder="KGS"
                 {...form.register("shippingCost")}
               />
-              {form.formState.errors.shippingCost && (
-                <span className="text-xs text-destructive">
-                  {form.formState.errors.shippingCost.message}
-                </span>
-              )}
+              <FieldError>
+                {form.formState.errors.shippingCost?.message}
+              </FieldError>
             </Field>
             <Field>
               <FieldLabel>Комментарий</FieldLabel>

@@ -12,9 +12,7 @@ export type PreparingShipmentValues = z.infer<typeof preparingShipmentSchema>;
 // Отправка / редактирование "отправлено"
 export const shippedShipmentSchema = z.object({
   code: z.string().optional(),
-  shippingCost: z
-    .number({ message: "Введи стоимость" })
-    .min(0, "Цена не может быть отрицательной"),
+  shippingCost: z.number().min(0, "Цена не может быть отрицательной"),
   notes: z.string().optional(),
 });
 export type ShippedShipmentValues = z.infer<typeof shippedShipmentSchema>;
