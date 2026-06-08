@@ -170,6 +170,34 @@ export async function setDefaultCurrency(code: string) {
   revalidatePath("/settings");
 }
 
+// ==================== Профиль пользователя ====================
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  role: string;
+}
+
+export async function getCurrentUser(): Promise<UserProfile | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return null;
+
+  const [profile] = await db
+    .select({
+      id: userProfiles.id,
+      name: userProfiles.name,
+      role: userProfiles.role,
+    })
+    .from(userProfiles)
+    .where(eq(userProfiles.id, user.id));
+
+  return profile ?? null;
+}
+
 // ==================== Ставка комиссии ====================
 
 export async function getCommissionRate(): Promise<number> {
