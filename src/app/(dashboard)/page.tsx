@@ -12,11 +12,11 @@ export default async function DashboardPage() {
       {/* Дашборд */}
       <StatsCompact />
 
-      {/* Клиенты */}
-      <ClientGrid />
-
       {/* Навигация */}
       <NavButtons />
+
+      {/* Клиенты */}
+      <ClientGrid />
     </>
   );
 }

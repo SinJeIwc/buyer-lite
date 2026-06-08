@@ -1,13 +1,23 @@
 "use client";
 
 import { RefreshCwIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { DashboardStats } from "@/server/dashboard";
 import { useClientsStore } from "@/stores/clients-store";
 import { useDashboardStore } from "@/stores/dashboard-store";
-import { Button } from "../ui/button";
+
+const emptyStats: DashboardStats["today"] = {
+  total: 0,
+  commission: 0,
+  spread: 0,
+  orderDiscount: 0,
+  shipping: 0,
+  count: 0,
+};
 
 export function StatsCompact() {
   const isLoading = useDashboardStore((s) => s.isLoading);
@@ -19,6 +29,9 @@ export function StatsCompact() {
     fetchStats();
     fetchClients();
   }, [fetchStats, fetchClients]);
+
+  const today = stats?.today ?? emptyStats;
+  const month = stats?.month ?? emptyStats;
 
   return (
     <Tabs defaultValue="today">
@@ -42,17 +55,13 @@ export function StatsCompact() {
         </Button>
       </TabsList>
 
-      {stats && (
-        <>
-          <TabsContent value="today">
-            <PeriodCard label="За сегодня" data={stats.today} />
-          </TabsContent>
+      <TabsContent value="today">
+        <PeriodCard label="За сегодня" data={today} isLoading={isLoading} />
+      </TabsContent>
 
-          <TabsContent value="month">
-            <PeriodCard label="За месяц" data={stats.month} />
-          </TabsContent>
-        </>
-      )}
+      <TabsContent value="month">
+        <PeriodCard label="За месяц" data={month} isLoading={isLoading} />
+      </TabsContent>
     </Tabs>
   );
 }
@@ -60,42 +69,89 @@ export function StatsCompact() {
 function PeriodCard({
   label,
   data,
+  isLoading,
 }: {
   label: string;
   data: DashboardStats["today"];
+  isLoading: boolean;
 }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xs text-muted-foreground font-medium">
-          {label}
-        </CardTitle>
+        <CardTitle>{label}</CardTitle>
       </CardHeader>
-      <CardContent className="grid grid-cols-2">
-        <p className="text-2xl font-bold text-green-600 tabular-nums">
-          +{data.total.toLocaleString("ru-RU")}с
-        </p>
+      <CardContent className="grid grid-cols-2 items-center">
+        <AnimatedNumber
+          value={data.total}
+          prefix="+"
+          suffix="с"
+          className="text-2xl font-bold text-green-600"
+          isLoading={isLoading}
+        />
         <div className="text-right text-xs space-y-0.5 text-muted-foreground">
-          <p className="flex justify-between">
-            Комиссия:{" "}
-            <span className="text-foreground font-medium">
-              {data.commission.toLocaleString("ru-RU")}с
-            </span>
-          </p>
-          <p className="flex justify-between">
-            Спред:{" "}
-            <span className="text-foreground font-medium">
-              {data.spread.toLocaleString("ru-RU")}с
-            </span>
-          </p>
-          <p className="flex justify-between">
-            Скидка:{" "}
-            <span className="text-foreground font-medium">
-              {data.orderDiscount.toLocaleString("ru-RU")}с
-            </span>
-          </p>
+          <Row label="Комиссия" value={data.commission} isLoading={isLoading} />
+          <Row label="Спред" value={data.spread} isLoading={isLoading} />
+          <Row
+            label="Скидка"
+            value={data.orderDiscount}
+            isLoading={isLoading}
+          />
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+function Row({
+  label,
+  value,
+  isLoading,
+}: {
+  label: string;
+  value: number;
+  isLoading: boolean;
+}) {
+  return (
+    <p className="flex justify-between gap-2">
+      {label}:{" "}
+      <AnimatedNumber
+        value={value}
+        suffix="с"
+        className="text-foreground font-medium"
+        isLoading={isLoading}
+      />
+    </p>
+  );
+}
+
+function AnimatedNumber({
+  value,
+  prefix = "",
+  suffix = "",
+  className,
+  isLoading,
+}: {
+  value: number;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+  isLoading: boolean;
+}) {
+  return (
+    <span className={`tabular-nums inline-block ${className ?? ""}`}>
+      {prefix}
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={isLoading ? "loading" : value}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.2 }}
+        >
+          {isLoading ? "0" : value.toLocaleString("ru-RU")}
+        </motion.span>
+      </AnimatePresence>
+      {suffix}
+    </span>
   );
 }

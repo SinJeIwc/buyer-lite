@@ -1,15 +1,27 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useState } from "react";
 import { BalanceDialog } from "@/components/clients/balance/balance-button";
 import { Card, CardContent } from "@/components/ui/card";
-import { IsLoading } from "@/components/ui/is-loading";
 import { useClientsStore } from "@/stores/clients-store";
 
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05 },
+  },
+};
+
+const item = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0 },
+};
+
 export function ClientGrid() {
-  const isLoading = useClientsStore((s) => s.isLoading);
   const clients = useClientsStore((s) => s.items);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [balanceOpen, setBalanceOpen] = useState(false);
@@ -28,22 +40,22 @@ export function ClientGrid() {
 
   const hasOdd = clients.length % 2 !== 0;
 
-  if (isLoading) return <IsLoading />;
-
   return (
     <>
-      <div>
-        <h3 className="text-xs font-medium text-muted-foreground mb-1.5">
-          Клиенты
-        </h3>
-        <div className="grid grid-cols-2 gap-2">
-          {clients.map((client) => (
+      <motion.div
+        className="grid grid-cols-2 gap-2"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
+        {clients.map((client) => (
+          <motion.div key={client.id} variants={item}>
             <button
-              key={client.id}
               type="button"
+              className="w-full text-left"
               onClick={() => handleClientClick(client.id)}
             >
-              <Card className="active:scale-[0.97] transition-transform h-full">
+              <Card className="active:scale-[0.97] transition-transform">
                 <CardContent className="p-3">
                   <p className="text-sm font-medium truncate">{client.name}</p>
                   <p
@@ -58,10 +70,11 @@ export function ClientGrid() {
                 </CardContent>
               </Card>
             </button>
-          ))}
+          </motion.div>
+        ))}
 
-          {/* Кнопка "+" если нечётное количество */}
-          {hasOdd && (
+        {hasOdd && (
+          <motion.div variants={item}>
             <Link href="/clients">
               <Card className="active:scale-[0.97] transition-transform h-full border-dashed">
                 <CardContent className="p-3 flex items-center justify-center h-full">
@@ -69,11 +82,10 @@ export function ClientGrid() {
                 </CardContent>
               </Card>
             </Link>
-          )}
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </motion.div>
 
-      {/* Модалка пополнения */}
       {selectedClientId && (
         <BalanceDialog
           open={balanceOpen}
