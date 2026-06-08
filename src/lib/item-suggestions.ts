@@ -1,22 +1,103 @@
 const STORAGE_KEY = "buyer-lite-item-suggestions";
-const MAX_RECENT = 50;
+const MAX_NAMES = 200;
+const MAX_SIZES = 100;
+const MAX_ASSOCIATIONS = 500;
 const MAX_SUGGESTIONS = 5;
 
+// Дефолтные названия товаров (одежда)
+const DEFAULT_NAMES = [
+  "Юбка",
+  "Штаны",
+  "Блузка",
+  "Платье",
+  "Футболка",
+  "Рубашка",
+  "Куртка",
+  "Пальто",
+  "Джинсы",
+  "Шорты",
+  "Свитер",
+  "Кардиган",
+  "Жилет",
+  "Костюм",
+  "Брюки",
+  "Леггинсы",
+  "Топ",
+  "Туника",
+  "Пиджак",
+  "Жакет",
+];
+
+// Дефолтные размеры
+const DEFAULT_SIZES = [
+  "S",
+  "M",
+  "L",
+  "XL",
+  "XXL",
+  "32-34",
+  "34-36",
+  "36-38",
+  "38-40",
+  "40-42",
+  "42-44",
+  "44-46",
+  "46-48",
+  "32",
+  "34",
+  "36",
+  "38",
+  "40",
+  "42",
+  "44",
+  "46",
+  "48",
+];
+
+interface ItemEntry {
+  value: string;
+  count: number;
+}
+
+interface Association {
+  name: string;
+  size: string;
+  count: number;
+}
+
 interface ItemSuggestionCache {
-  names: string[]; // ["Юбка", "Клеш брюки"]
-  sizes: string[]; // ["32-34", "M"]
-  recent: Array<{ name: string; size?: string }>; // Последние комбинации
+  names: ItemEntry[];
+  sizes: ItemEntry[];
+  associations: Association[];
+  recent: Array<{ name: string; size?: string }>;
 }
 
 function getCache(): ItemSuggestionCache {
   if (typeof window === "undefined") {
-    return { names: [], sizes: [], recent: [] };
+    return { names: [], sizes: [], associations: [], recent: [] };
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Миграция со старого формата (массив строк → массив ItemEntry)
+      if (parsed.names && typeof parsed.names[0] === "string") {
+        parsed.names = parsed.names.map((n: string) => ({
+          value: n,
+          count: 1,
+        }));
+      }
+      if (parsed.sizes && typeof parsed.sizes[0] === "string") {
+        parsed.sizes = parsed.sizes.map((s: string) => ({
+          value: s,
+          count: 1,
+        }));
+      }
+      if (!parsed.associations) parsed.associations = [];
+      return parsed;
+    }
   } catch {}
-  return { names: [], sizes: [], recent: [] };
+  return { names: [], sizes: [], associations: [], recent: [] };
 }
 
 function saveCache(cache: ItemSuggestionCache) {
@@ -26,31 +107,62 @@ function saveCache(cache: ItemSuggestionCache) {
   } catch {}
 }
 
-function addToUnique(arr: string[], value: string, max: number): string[] {
-  const filtered = arr.filter((item) => item !== value);
-  return [value, ...filtered].slice(0, max);
+function upsertEntry(
+  arr: ItemEntry[],
+  value: string,
+  max: number,
+): ItemEntry[] {
+  const existing = arr.find((e) => e.value === value);
+  if (existing) {
+    existing.count++;
+    // Сортируем по count (убывание)
+    return arr.sort((a, b) => b.count - a.count);
+  }
+  const result = [{ value, count: 1 }, ...arr];
+  if (result.length > max) result.pop();
+  return result;
+}
+
+function upsertAssociation(
+  arr: Association[],
+  name: string,
+  size: string,
+  max: number,
+): Association[] {
+  const existing = arr.find((a) => a.name === name && a.size === size);
+  if (existing) {
+    existing.count++;
+    return arr.sort((a, b) => b.count - a.count);
+  }
+  const result = [{ name, size, count: 1 }, ...arr];
+  if (result.length > max) result.pop();
+  return result;
 }
 
 // Сохранить товар в историю
 export function saveItemSuggestion(name: string, size?: string) {
   const cache = getCache();
 
-  // Сохраняем имя
-  cache.names = addToUnique(cache.names, name, MAX_RECENT);
+  cache.names = upsertEntry(cache.names, name, MAX_NAMES);
 
-  // Сохраняем размер (если есть)
   if (size) {
-    cache.sizes = addToUnique(cache.sizes, size, MAX_RECENT);
+    cache.sizes = upsertEntry(cache.sizes, size, MAX_SIZES);
+    cache.associations = upsertAssociation(
+      cache.associations,
+      name,
+      size,
+      MAX_ASSOCIATIONS,
+    );
   }
 
-  // Сохраняем комбинацию
+  // Recent (последние комбинации)
   const combo = { name, size: size || undefined };
   cache.recent = [
     combo,
     ...cache.recent.filter(
       (r) => !(r.name === name && r.size === (size || undefined)),
     ),
-  ].slice(0, MAX_RECENT);
+  ].slice(0, 50);
 
   saveCache(cache);
 }
@@ -62,15 +174,19 @@ export function getNameSuggestions(query: string): string[] {
   const cache = getCache();
   const lowerQuery = query.toLowerCase();
 
-  // 1. Ищем в recent (последние использованные)
+  // Объединяем: recent → names (по частоте) → defaults
   const recentNames = cache.recent
     .map((r) => r.name)
-    .filter((name, index, arr) => arr.indexOf(name) === index); // unique
+    .filter((name, index, arr) => arr.indexOf(name) === index);
 
-  // 2. Ищем в names (все имена)
-  const allNames = [...new Set([...recentNames, ...cache.names])];
+  const savedNames = cache.names
+    .sort((a, b) => b.count - a.count)
+    .map((e) => e.value);
 
-  // Сортируем: exact start > contains
+  const allNames = [
+    ...new Set([...recentNames, ...savedNames, ...DEFAULT_NAMES]),
+  ];
+
   const exactStart: string[] = [];
   const contains: string[] = [];
 
@@ -83,24 +199,42 @@ export function getNameSuggestions(query: string): string[] {
     }
   }
 
-  // Приоритет: exact start → contains
   return [...exactStart, ...contains].slice(0, MAX_SUGGESTIONS);
 }
 
-// Получить рекомендации по размеру
-export function getSizeSuggestions(query: string): string[] {
+// Получить рекомендации по размеру (с учётом выбранного имени)
+export function getSizeSuggestions(query: string, forName?: string): string[] {
   if (!query || query.length < 1) return [];
 
   const cache = getCache();
   const lowerQuery = query.toLowerCase();
 
-  // Сортируем: recent first
+  // Если есть имя — приоритет связанным размерам
+  let associatedSizes: string[] = [];
+  if (forName) {
+    associatedSizes = cache.associations
+      .filter((a) => a.name === forName)
+      .sort((a, b) => b.count - a.count)
+      .map((a) => a.size);
+  }
+
   const recentSizes = cache.recent
     .map((r) => r.size)
     .filter((s): s is string => !!s)
     .filter((size, index, arr) => arr.indexOf(size) === index);
 
-  const allSizes = [...new Set([...recentSizes, ...cache.sizes])];
+  const savedSizes = cache.sizes
+    .sort((a, b) => b.count - a.count)
+    .map((e) => e.value);
+
+  const allSizes = [
+    ...new Set([
+      ...associatedSizes,
+      ...recentSizes,
+      ...savedSizes,
+      ...DEFAULT_SIZES,
+    ]),
+  ];
 
   const exactStart: string[] = [];
   const contains: string[] = [];
@@ -117,7 +251,7 @@ export function getSizeSuggestions(query: string): string[] {
   return [...exactStart, ...contains].slice(0, MAX_SUGGESTIONS);
 }
 
-// Получить рекомендации на основе последних товаров (для начального отображения)
+// Получить рекомендации на основе последних товаров
 export function getRecentSuggestions(): Array<{ name: string; size?: string }> {
   const cache = getCache();
   return cache.recent.slice(0, MAX_SUGGESTIONS);

@@ -139,7 +139,7 @@ export function EditItemDialog({
               <AutocompleteInput
                 value={size}
                 onChange={setSize}
-                suggestions={getSizeSuggestions(size)}
+                suggestions={getSizeSuggestions(size, name)}
                 placeholder="32-34, M..."
               />
             </Field>

@@ -44,7 +44,7 @@ export function NewItemCard({ item, onUpdate, onRemove }: NewItemCardProps) {
           <AutocompleteInput
             value={item.size ?? ""}
             onChange={(value) => onUpdate(item._id, { size: value || null })}
-            suggestions={getSizeSuggestions(item.size ?? "")}
+            suggestions={getSizeSuggestions(item.size ?? "", item.name)}
             placeholder="32-40, M"
           />
         </Field>

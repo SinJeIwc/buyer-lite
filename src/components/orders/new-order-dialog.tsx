@@ -222,7 +222,7 @@ export function NewOrderDialog({
                       <AutocompleteInput
                         value={item.size}
                         onChange={(value) => updateItem(index, { size: value })}
-                        suggestions={getSizeSuggestions(item.size)}
+                        suggestions={getSizeSuggestions(item.size, item.name)}
                         placeholder="32-40, M"
                       />
                     </Field>

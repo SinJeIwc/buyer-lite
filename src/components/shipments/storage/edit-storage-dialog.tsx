@@ -154,7 +154,10 @@ export function EditStorageDialog({
               <AutocompleteInput
                 value={form.watch("size") || ""}
                 onChange={(v) => form.setValue("size", v)}
-                suggestions={getSizeSuggestions(form.watch("size") || "")}
+                suggestions={getSizeSuggestions(
+                  form.watch("size") || "",
+                  form.watch("name"),
+                )}
                 placeholder="32-34, M..."
               />
             </Field>
