@@ -28,6 +28,7 @@ import {
 } from "@/lib/item-suggestions";
 import { createSupplierItem } from "@/server/supplier-items";
 import { useClientsStore } from "@/stores/clients-store";
+import type { ClientOption, OrderItem } from "./types";
 
 interface NewOrderDialogProps {
   open: boolean;
@@ -35,19 +36,6 @@ interface NewOrderDialogProps {
   supplierId: string;
   supplierName: string;
   onSuccess: () => void;
-}
-
-interface OrderItem {
-  _id: string;
-  name: string;
-  size: string;
-  quantity: number;
-  purchasePrice: number;
-}
-
-interface ClientItem {
-  label: string;
-  value: string;
 }
 
 export function NewOrderDialog({
@@ -87,7 +75,7 @@ export function NewOrderDialog({
     }
   }, [open, fetchClients]);
 
-  const clientItems: ClientItem[] = clientsList
+  const clientItems: ClientOption[] = clientsList
     .filter((c) => !c.isBlocked)
     .map((c) => ({
       label: c.name,

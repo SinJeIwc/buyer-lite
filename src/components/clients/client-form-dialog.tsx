@@ -14,19 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { addClient, type ClientFormData, updateClient } from "@/server/clients";
-
-interface Client {
-  id: string;
-  name: string;
-  phone: string | null;
-  city: string | null;
-  notes: string | null;
-}
+import type { ClientBrief } from "./types";
 
 interface ClientFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  client?: Client | null;
+  client?: ClientBrief | null;
   onSuccess: (newClient?: { id: string; name: string }) => void;
 }
 

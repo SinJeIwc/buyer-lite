@@ -29,13 +29,9 @@ import { deleteClient, toggleBlocked, toggleFavorite } from "@/server/clients";
 import { useClientsStore } from "@/stores/clients-store";
 import { BalanceButton } from "./balance/balance-button";
 import { ClientFormDialog } from "./client-form-dialog";
+import type { ClientBrief } from "./types";
 
-interface Client {
-  id: string;
-  name: string;
-  phone: string | null;
-  city: string | null;
-  notes: string | null;
+interface Client extends ClientBrief {
   isFavorite: boolean;
   isBlocked: boolean;
   balance: string;

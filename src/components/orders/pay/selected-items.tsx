@@ -2,17 +2,9 @@
 
 import { ExistingItemCard } from "./existing-item-card";
 import { NewItemCard } from "./new-item-card";
+import type { SelectedItem } from "../types";
 
-export interface SelectedItem {
-  _id: string;
-  supplierItemId?: string;
-  isNew: boolean;
-  name: string;
-  size: string | null;
-  maxQuantity: number;
-  quantity: number;
-  purchasePrice: number;
-}
+export type { SelectedItem };
 
 interface SelectedItemsProps {
   items: SelectedItem[];

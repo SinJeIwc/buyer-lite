@@ -156,8 +156,8 @@ export function ShipmentDocument({ shipment }: ShipmentDocumentProps) {
             Сумма
           </Text>
         </View>
-        {shipment.items.map((item, i) => (
-          <View key={i} style={styles.tableRow}>
+        {shipment.items.map((item) => (
+          <View key={item.id} style={styles.tableRow}>
             <Text style={styles.colName}>
               {item.name}
               {item.size ? ` (${item.size})` : ""}

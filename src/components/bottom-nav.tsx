@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, Package, Settings, ShoppingBag } from "lucide-react";
+import { Home, Package, ShoppingBag, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,11 @@ const navItems = [
     icon: Home,
   },
   {
+    href: "/clients",
+    label: "Клиенты",
+    icon: Users,
+  },
+  {
     href: "/orders",
     label: "Заказы",
     icon: ShoppingBag,
@@ -20,11 +25,6 @@ const navItems = [
     href: "/shipments",
     label: "Отправки",
     icon: Package,
-  },
-  {
-    href: "/settings",
-    label: "Настройки",
-    icon: Settings,
   },
 ];
 

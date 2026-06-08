@@ -23,6 +23,7 @@ import {
 import { getNameSuggestions, getSizeSuggestions } from "@/lib/item-suggestions";
 import { updateSupplierItem } from "@/server/supplier-items";
 import { useClientsStore } from "@/stores/clients-store";
+import type { ClientOption } from "./types";
 
 interface EditItemDialogProps {
   open: boolean;
@@ -37,11 +38,6 @@ interface EditItemDialogProps {
     purchasePrice: string;
   };
   onSuccess: () => void;
-}
-
-interface ClientItem {
-  label: string;
-  value: string;
 }
 
 export function EditItemDialog({
@@ -71,7 +67,7 @@ export function EditItemDialog({
     }
   }, [open, item, fetchClients]);
 
-  const clientItems: ClientItem[] = clientsList
+  const clientItems: ClientOption[] = clientsList
     .filter((c) => !c.isBlocked)
     .map((c) => ({
       label: c.name,
