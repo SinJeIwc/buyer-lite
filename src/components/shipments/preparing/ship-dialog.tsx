@@ -37,6 +37,7 @@ export function ShipDialog({
   onSuccess,
 }: ShipDialogProps) {
   const [isSaving, setIsSaving] = useState(false);
+  const [commissionReady, setCommissionReady] = useState(false);
 
   // Сумма товаров в отправке
   const itemsTotal = shipment.items.reduce(
@@ -62,6 +63,7 @@ export function ShipDialog({
   // Загружаем ставку из профиля при открытии
   useEffect(() => {
     if (open) {
+      setCommissionReady(false);
       getCommissionRate().then((rate) => {
         const amount = Math.round(itemsTotal * (rate / 100));
         form.reset({
@@ -71,6 +73,7 @@ export function ShipDialog({
           commissionAmount: amount,
           notes: shipment.notes || "",
         });
+        setCommissionReady(true);
       });
     }
   }, [open, shipment, form, itemsTotal]);
@@ -224,7 +227,7 @@ export function ShipDialog({
           )}
 
           <DialogFooter>
-            <Button type="submit" disabled={isSaving}>
+            <Button type="submit" disabled={isSaving || !commissionReady}>
               {isSaving ? "Отправка..." : "Подтвердить отправку"}
             </Button>
           </DialogFooter>

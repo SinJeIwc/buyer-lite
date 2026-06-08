@@ -183,7 +183,15 @@ export function PayDialog({
           </DialogHeader>
 
           <FieldGroup>
-            <ClientSelect value={clientId} onChange={setClientId} />
+            <ClientSelect
+              value={clientId}
+              onChange={(id) => {
+                setClientId(id);
+                setSelectedItems([]);
+                setClientPriceTotal("");
+                setIsLocked(true);
+              }}
+            />
 
             <ItemSearch
               supplierId={supplierId}

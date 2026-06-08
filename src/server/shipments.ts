@@ -51,7 +51,9 @@ export async function getShipments(status?: string) {
     .from(shipments)
     .leftJoin(clients, eq(shipments.clientId, clients.id))
     .where(and(...conditions))
-    .orderBy(desc(shipments.createdAt));
+    .orderBy(
+      desc(status === "shipped" ? shipments.shippedAt : shipments.createdAt),
+    );
 
   // Загружаем товары для каждой отправки
   const result = [];
@@ -143,6 +145,7 @@ export async function updateShipment(
     status?: string;
     destination?: string;
     shippingCost?: number;
+    commissionAmount?: number;
     notes?: string;
   },
 ) {
@@ -156,6 +159,8 @@ export async function updateShipment(
     updateData.destination = data.destination || null;
   if (data.shippingCost !== undefined)
     updateData.shippingCost = data.shippingCost?.toFixed(2) || null;
+  if (data.commissionAmount !== undefined)
+    updateData.commissionAmount = data.commissionAmount?.toFixed(2) || null;
   if (data.notes !== undefined) updateData.notes = data.notes || null;
 
   // Если статус shipped и ещё не было shippedAt

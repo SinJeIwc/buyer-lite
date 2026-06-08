@@ -63,6 +63,14 @@ export function BalanceHistoryCard({ operation }: BalanceHistoryCardProps) {
               {operation.currencyCode} × {operation.rateClient}
             </p>
           )}
+          {operation.createdAt && (
+            <p className="text-[10px] text-muted-foreground mt-0.5">
+              {new Date(operation.createdAt).toLocaleTimeString("ru-RU", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          )}
         </ItemContent>
       </Item>
 

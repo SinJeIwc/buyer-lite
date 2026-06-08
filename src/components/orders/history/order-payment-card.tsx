@@ -25,12 +25,9 @@ export function OrderPaymentCard({ payment }: OrderPaymentCardProps) {
     });
   }
 
-  function formatDate(date: Date | null) {
-    if (!date) return "—";
-    return new Date(date).toLocaleDateString("ru-RU", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit",
+  function formatTime(date: Date | null) {
+    if (!date) return "";
+    return new Date(date).toLocaleTimeString("ru-RU", {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -52,7 +49,7 @@ export function OrderPaymentCard({ payment }: OrderPaymentCardProps) {
           </span>
         </ItemTitle>
         <ItemDescription className="flex items-center gap-2 text-xs">
-          <span>{formatDate(payment.createdAt)}</span>
+          <span>{formatTime(payment.createdAt)}</span>
           <span>•</span>
           <span>Кол-во: {payment.items.length}</span>
           <span>•</span>

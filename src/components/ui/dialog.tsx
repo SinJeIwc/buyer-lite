@@ -56,6 +56,7 @@ function DialogContent({
           "fixed top-1/2 left-1/2 z-50 grid w-[calc(100%-2rem)] max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-6 rounded-4xl bg-popover p-6 text-sm text-popover-foreground shadow-xl ring-1 ring-foreground/5 outline-none sm:max-w-md dark:ring-foreground/10",
           className
         )}
+        initialFocus={false}
         {...props}
       >
         {children}

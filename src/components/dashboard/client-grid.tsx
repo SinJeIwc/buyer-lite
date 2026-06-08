@@ -26,7 +26,10 @@ export function ClientGrid() {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [balanceOpen, setBalanceOpen] = useState(false);
 
-  if (clients.length === 0) return null;
+  // Фильтруем заблокированных
+  const activeClients = clients.filter((c) => !c.isBlocked);
+
+  if (activeClients.length === 0) return null;
 
   function handleClientClick(clientId: string) {
     setSelectedClientId(clientId);
@@ -38,7 +41,7 @@ export function ClientGrid() {
     return num.toLocaleString("ru-RU", { minimumFractionDigits: 0 });
   }
 
-  const hasOdd = clients.length % 2 !== 0;
+  const hasOdd = activeClients.length % 2 !== 0;
 
   return (
     <>
@@ -48,7 +51,7 @@ export function ClientGrid() {
         initial="hidden"
         animate="show"
       >
-        {clients.map((client) => (
+        {activeClients.map((client) => (
           <motion.div key={client.id} variants={item}>
             <button
               type="button"

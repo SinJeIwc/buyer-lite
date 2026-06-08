@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil, RotateCcw } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -60,9 +60,10 @@ export function HistoryTab() {
     }
   }
 
-  // Группировка по дате
-  const grouped = shipments.reduce<Record<string, typeof shipments>>(
-    (acc, s) => {
+  // Группировка по дате (новые сверху)
+  const grouped = useMemo(() => {
+    const groups = new Map<string, typeof shipments>();
+    for (const s of shipments) {
       const date = s.shippedAt
         ? new Date(s.shippedAt).toLocaleDateString("ru-RU", {
             day: "2-digit",
@@ -70,12 +71,12 @@ export function HistoryTab() {
             year: "numeric",
           })
         : "Без даты";
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(s);
-      return acc;
-    },
-    {},
-  );
+      const arr = groups.get(date);
+      if (arr) arr.push(s);
+      else groups.set(date, [s]);
+    }
+    return Array.from(groups.entries());
+  }, [shipments]);
 
   return (
     <div className="space-y-4">
@@ -84,7 +85,7 @@ export function HistoryTab() {
       ) : shipments.length === 0 ? (
         <LengthZero />
       ) : (
-        Object.entries(grouped).map(([date, items]) => (
+        grouped.map(([date, items]) => (
           <div key={date} className="space-y-2">
             <h3 className="text-sm font-medium text-muted-foreground px-1">
               {date}
@@ -92,8 +93,19 @@ export function HistoryTab() {
             {items.map((shipment) => (
               <Item key={shipment.id} variant="outline" size="xs">
                 <ItemContent>
-                  <ItemTitle className="flex items-center gap-2">
+                  <ItemTitle className="flex items-center justify-between gap-2">
                     <span className="truncate">{shipment.clientName}</span>
+                    {shipment.shippedAt && (
+                      <span className="text-xs text-muted-foreground font-normal">
+                        {new Date(shipment.shippedAt).toLocaleTimeString(
+                          "ru-RU",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </span>
+                    )}
                   </ItemTitle>
                   <ItemDescription>
                     {shipment.destination && (
@@ -102,7 +114,12 @@ export function HistoryTab() {
                     {shipment.code && (
                       <span className="ml-1">#{shipment.code}</span>
                     )}
-                    <span className="grid gap-x-3 gap-y-0.5 text-xs">
+                    {shipment.notes && (
+                      <span className="block text-muted-foreground mt-0.5">
+                        {shipment.notes}
+                      </span>
+                    )}
+                    <span className="grid gap-x-3 gap-y-0.5 text-xs mt-1">
                       {shipment.items.map((item) => (
                         <span key={item.id}>
                           {item.name}
@@ -136,19 +153,27 @@ export function HistoryTab() {
                 <ItemSeparator />
 
                 <ItemFooter>
-                  <span className="text-xs text-muted-foreground truncate max-w-32">
-                    {shipment.notes}
-                  </span>
-
-                  {shipment.shippingCost && (
-                    <span className="text-sm font-medium">
-                      <span className="mr-1">Доставка:</span>
-                      {parseFloat(shipment.shippingCost).toLocaleString(
-                        "ru-RU",
+                  <div className="flex items-center gap-2">
+                    {shipment.shippingCost && (
+                      <span className="text-xs">
+                        Доставка:{" "}
+                        {parseFloat(shipment.shippingCost).toLocaleString(
+                          "ru-RU",
+                        )}
+                        с
+                      </span>
+                    )}
+                    {shipment.commissionAmount &&
+                      parseFloat(shipment.commissionAmount) > 0 && (
+                        <span className="text-xs">
+                          Комиссия:{" "}
+                          {parseFloat(shipment.commissionAmount).toLocaleString(
+                            "ru-RU",
+                          )}
+                          с
+                        </span>
                       )}
-                      с
-                    </span>
-                  )}
+                  </div>
                 </ItemFooter>
               </Item>
             ))}

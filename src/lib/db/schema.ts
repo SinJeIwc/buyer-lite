@@ -21,13 +21,6 @@ export const suppliers = pgTable("suppliers", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Типы товаров
-export const itemTypes = pgTable("item_types", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  name: text("name").notNull().unique(), // Блузка, юбка, платье, штаны
-  createdAt: timestamp("created_at").defaultNow(),
-});
-
 // Клиенты (привязаны к пользователю)
 export const clients = pgTable("clients", {
   id: uuid("id").defaultRandom().primaryKey(),

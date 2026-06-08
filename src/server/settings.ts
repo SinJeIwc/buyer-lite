@@ -3,12 +3,7 @@
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import {
-  type CurrencyItem,
-  itemTypes,
-  suppliers,
-  userProfiles,
-} from "@/lib/db/schema";
+import { type CurrencyItem, suppliers, userProfiles } from "@/lib/db/schema";
 import { createClient } from "@/lib/supabase/server";
 
 // ==================== Helper ====================
@@ -66,28 +61,6 @@ export async function deleteSupplier(id: string) {
   await db.delete(suppliers).where(eq(suppliers.id, id));
   revalidatePath("/settings");
   revalidatePath("/suppliers");
-}
-
-// ==================== Типы товаров ====================
-
-export async function getItemTypes() {
-  return await db
-    .select({
-      id: itemTypes.id,
-      name: itemTypes.name,
-    })
-    .from(itemTypes)
-    .orderBy(itemTypes.name);
-}
-
-export async function addItemType(name: string) {
-  await db.insert(itemTypes).values({ name });
-  revalidatePath("/settings");
-}
-
-export async function deleteItemType(id: string) {
-  await db.delete(itemTypes).where(eq(itemTypes.id, id));
-  revalidatePath("/settings");
 }
 
 // ==================== Валюты (JSON в user_profiles) ====================
