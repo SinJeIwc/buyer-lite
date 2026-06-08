@@ -1,5 +1,5 @@
 import { BackButton } from "@/components/back-button";
-import { OrderHistory } from "@/components/order-history/order-history";
+import { OrderHistory } from "@/components/orders/history/order-history";
 
 export default function Page() {
   return (

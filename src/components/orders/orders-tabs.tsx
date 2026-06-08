@@ -32,7 +32,7 @@ export function OrdersTabs() {
   return (
     <Tabs defaultValue="suppliers">
       <TabsList className="w-full">
-        <Link href="/order-history">
+        <Link href="/orders/history">
           <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
             <History className="w-4 h-4" />
           </Button>
