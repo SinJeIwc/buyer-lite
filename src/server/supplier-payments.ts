@@ -70,7 +70,7 @@ export async function paySupplierItems(data: {
         purchasePrice: price,
       });
 
-      // Ищем существующий на складе
+      // Ищем существующий на складе (имя + размер + цена)
       const [existing] = await db
         .select({ id: storageItems.id, quantity: storageItems.quantity })
         .from(storageItems)
@@ -80,6 +80,11 @@ export async function paySupplierItems(data: {
             eq(storageItems.clientId, data.clientId),
             eq(storageItems.supplierId, data.supplierId),
             eq(storageItems.name, item.name),
+            eq(storageItems.size, item.size || null),
+            eq(
+              storageItems.purchasePrice,
+              (item.purchasePrice || 0).toFixed(2),
+            ),
           ),
         );
 
@@ -138,7 +143,7 @@ export async function paySupplierItems(data: {
           .where(eq(supplierItems.id, supplierItem.id));
       }
 
-      // Добавляем в storage
+      // Добавляем в storage (ищем по имени + размеру + цене)
       const [existing] = await db
         .select({ id: storageItems.id, quantity: storageItems.quantity })
         .from(storageItems)
@@ -148,6 +153,8 @@ export async function paySupplierItems(data: {
             eq(storageItems.clientId, data.clientId),
             eq(storageItems.supplierId, data.supplierId),
             eq(storageItems.name, supplierItem.name),
+            eq(storageItems.size, supplierItem.size),
+            eq(storageItems.purchasePrice, supplierItem.purchasePrice),
           ),
         );
 

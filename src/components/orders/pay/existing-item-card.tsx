@@ -60,17 +60,9 @@ export function ExistingItemCard({
         </Field>
         <Field>
           <FieldLabel className="text-xs">Цена/шт</FieldLabel>
-          <Input
-            type="number"
-            step="0.01"
-            value={item.purchasePrice || ""}
-            placeholder="0"
-            onChange={(e) =>
-              onUpdate(item._id, {
-                purchasePrice: parseFloat(e.target.value) || 0,
-              })
-            }
-          />
+          <p className="text-sm font-medium tabular-nums pt-1.5">
+            {item.purchasePrice.toLocaleString("ru-RU")}с
+          </p>
         </Field>
       </div>
     </div>

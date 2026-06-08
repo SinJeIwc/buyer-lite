@@ -35,6 +35,7 @@ export function ItemSearch({
 }: ItemSearchProps) {
   const storeItems = useItemsStore((s) => s.items);
   const [query, setQuery] = useState("");
+  const [isOpen, setIsOpen] = useState(false);
 
   const clientItems = storeItems
     .filter((item) => item.supplierId === supplierId)
@@ -51,6 +52,23 @@ export function ItemSearch({
   function handleSelect(item: StoreItem) {
     onSelect(item);
     setQuery("");
+  }
+
+  function handleSelectAll() {
+    for (const item of filteredItems) {
+      onSelect(item);
+    }
+    setQuery("");
+    setIsOpen(false);
+  }
+
+  function handleFocus() {
+    setIsOpen(true);
+  }
+
+  function handleBlur() {
+    // Небольшая задержка чтобы клик успел сработать
+    setTimeout(() => setIsOpen(false), 200);
   }
 
   return (
@@ -79,27 +97,46 @@ export function ItemSearch({
                 : "Поиск товара..."
           }
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           disabled={disabled || !hasItems}
           className="pl-9 pr-8"
         />
         {query && (
           <button
             type="button"
-            onClick={() => setQuery("")}
+            onClick={() => {
+              setQuery("");
+              setIsOpen(false);
+            }}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="w-4 h-4" />
           </button>
         )}
 
-        {query && filteredItems.length > 0 && (
+        {isOpen && filteredItems.length > 0 && (
           <div className="absolute left-0 right-0 top-full mt-1 border rounded-lg max-h-40 overflow-y-auto z-50 bg-popover shadow-md">
+            {filteredItems.length > 1 && (
+              <button
+                type="button"
+                className="w-full text-left px-3 py-2 hover:bg-primary/10 text-sm font-medium text-primary border-b"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={handleSelectAll}
+              >
+                Выбрать все ({filteredItems.length})
+              </button>
+            )}
             {filteredItems.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 className="w-full text-left px-3 py-2 hover:bg-muted/50 text-sm flex justify-between items-center"
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleSelect(item)}
               >
                 <div className="truncate">
@@ -118,7 +155,7 @@ export function ItemSearch({
           </div>
         )}
 
-        {query && filteredItems.length === 0 && (
+        {isOpen && filteredItems.length === 0 && query && (
           <div className="absolute left-0 right-0 top-full mt-1 border rounded-lg z-50 bg-popover shadow-md">
             <p className="px-3 py-2 text-sm text-muted-foreground">
               Товары не найдены
