@@ -67,31 +67,25 @@ export function HistoryTab() {
             </h3>
             {items.map((shipment) => (
               <Item key={shipment.id} variant="outline" size="xs">
-                <ItemContent className="min-w-0">
+                <ItemContent>
                   <ItemTitle className="flex items-center gap-2">
-                    <span className="truncate">
-                      {shipment.clientName || "—"}
-                      {shipment.code && (
-                        <span className="text-muted-foreground ml-1">
-                          #{shipment.code}
-                        </span>
-                      )}
-                    </span>
+                    <span className="truncate">{shipment.clientName}</span>
                   </ItemTitle>
                   <ItemDescription>
                     {shipment.destination && (
-                      <span className="text-muted-foreground">
-                        → {shipment.destination}
-                      </span>
+                      <span>{shipment.destination}</span>
                     )}
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-1 text-xs">
+                    {shipment.code && (
+                      <span className="ml-1">#{shipment.code}</span>
+                    )}
+                    <span className="flex gap-x-3 gap-y-0.5 text-xs">
                       {shipment.items.map((item) => (
-                        <span key={item.id} className="text-muted-foreground">
+                        <span key={item.id}>
                           {item.name}
                           {item.size && ` (${item.size})`} ×{item.quantity}
                         </span>
                       ))}
-                    </div>
+                    </span>
                   </ItemDescription>
                 </ItemContent>
 
@@ -117,13 +111,13 @@ export function HistoryTab() {
                 <ItemSeparator />
 
                 <ItemFooter>
-                  {shipment.notes && (
-                    <span className="text-xs text-muted-foreground truncate max-w-32">
-                      {shipment.notes}
-                    </span>
-                  )}
+                  <span className="text-xs text-muted-foreground truncate max-w-32">
+                    {shipment.notes}
+                  </span>
+
                   {shipment.shippingCost && (
                     <span className="text-sm font-medium">
+                      <span className="mr-1">Доставка:</span>
                       {parseFloat(shipment.shippingCost).toLocaleString(
                         "ru-RU",
                       )}

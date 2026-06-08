@@ -90,12 +90,12 @@ export function EditShippedDialog({
               <Input placeholder="12345" {...form.register("code")} />
             </Field>
             <Field>
-              <FieldLabel>Стоимость доставки (KGS)</FieldLabel>
+              <FieldLabel>Стоимость доставки</FieldLabel>
               <Input
                 type="number"
                 step="0.01"
                 min="0"
-                placeholder="0"
+                placeholder="KGS"
                 {...form.register("shippingCost")}
               />
             </Field>

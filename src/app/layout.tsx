@@ -17,18 +17,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Buyer Lite",
   description: "Система отчетности",
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
-  applicationName: "Buyer Lite",
-  appleWebApp: {
-    title: "Buyer Lite",
-    capable: true,
-    statusBarStyle: "default",
-  },
 };
 
 export default function RootLayout({

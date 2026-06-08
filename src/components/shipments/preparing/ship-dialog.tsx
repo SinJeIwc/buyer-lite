@@ -38,7 +38,7 @@ export function ShipDialog({
     mode: "onChange",
     defaultValues: {
       code: defaultCode || "",
-      shippingCost: 0,
+      shippingCost: undefined,
       notes: "",
     },
   });
@@ -47,7 +47,7 @@ export function ShipDialog({
     if (open) {
       form.reset({
         code: defaultCode || "",
-        shippingCost: 0,
+        shippingCost: undefined,
         notes: "",
       });
     }
@@ -59,7 +59,7 @@ export function ShipDialog({
       await shipShipment(shipmentId, {
         code: values.code || undefined,
         notes: values.notes || undefined,
-        shippingCost: values.shippingCost || undefined,
+        shippingCost: values.shippingCost,
       });
       onOpenChange(false);
       onSuccess();
@@ -83,16 +83,26 @@ export function ShipDialog({
             <Field>
               <FieldLabel>ID отправки</FieldLabel>
               <Input placeholder="12345" {...form.register("code")} />
+              {form.formState.errors.code && (
+                <span className="text-xs text-destructive">
+                  {form.formState.errors.code.message}
+                </span>
+              )}
             </Field>
             <Field>
-              <FieldLabel>Стоимость доставки (KGS)</FieldLabel>
+              <FieldLabel>Стоимость доставки</FieldLabel>
               <Input
                 type="number"
                 step="0.01"
                 min="0"
-                placeholder="0"
+                placeholder="KGS"
                 {...form.register("shippingCost")}
               />
+              {form.formState.errors.shippingCost && (
+                <span className="text-xs text-destructive">
+                  {form.formState.errors.shippingCost.message}
+                </span>
+              )}
             </Field>
             <Field>
               <FieldLabel>Комментарий</FieldLabel>

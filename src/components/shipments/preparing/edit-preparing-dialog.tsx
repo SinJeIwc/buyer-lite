@@ -216,6 +216,7 @@ export function EditPreparingDialog({
                 <FieldLabel>Куда едет</FieldLabel>
                 <Input
                   placeholder="Город, адрес"
+                  required
                   {...form.register("destination")}
                 />
                 {form.formState.errors.destination && (
@@ -288,7 +289,10 @@ export function EditPreparingDialog({
             </FieldGroup>
 
             <DialogFooter>
-              <Button type="submit" disabled={isSaving || activeItems.length === 0}>
+              <Button
+                type="submit"
+                disabled={isSaving || activeItems.length === 0}
+              >
                 {isSaving ? "Сохранение..." : "Сохранить"}
               </Button>
             </DialogFooter>

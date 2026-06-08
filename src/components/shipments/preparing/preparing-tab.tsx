@@ -11,7 +11,6 @@ import {
   ItemContent,
   ItemDescription,
   ItemFooter,
-  ItemSeparator,
   ItemTitle,
 } from "@/components/ui/item";
 import { LengthZero } from "@/components/ui/length-zero";
@@ -48,15 +47,13 @@ export function PreparingTab() {
           <Item key={shipment.id} variant="outline" size="xs">
             <ItemContent>
               <ItemTitle>{shipment.clientName || "—"}</ItemTitle>
-              <ItemDescription>
-                <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
-                  {shipment.items.map((item) => (
-                    <span key={item.id} className="text-muted-foreground">
-                      {item.name}
-                      {item.size && ` (${item.size})`} ×{item.quantity}
-                    </span>
-                  ))}
-                </div>
+              <ItemDescription className="grid gap-x-3 gap-y-0.5 text-xs">
+                {shipment.items.map((item) => (
+                  <span key={item.id}>
+                    {item.name}
+                    {item.size && ` (${item.size})`} ×{item.quantity}
+                  </span>
+                ))}
               </ItemDescription>
             </ItemContent>
 
@@ -78,8 +75,6 @@ export function PreparingTab() {
                 <Trash2 className="size-4" />
               </Button>
             </ItemActions>
-
-            <ItemSeparator />
 
             <ItemFooter>
               <Button
