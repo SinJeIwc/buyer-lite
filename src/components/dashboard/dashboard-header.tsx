@@ -11,7 +11,7 @@ export async function DashboardHeader() {
     <header className="flex items-center justify-between">
       <div className="flex items-center gap-3">
         <Image src="/logo.png" alt="Logo" width={36} height={36} />
-        <p className="text-sm font-medium">{user?.name ?? "Байер"}</p>
+        <h1 className="font-medium">{user?.name ?? "Байер"}</h1>
       </div>
 
       <Link href="/settings">
