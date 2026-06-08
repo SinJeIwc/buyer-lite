@@ -14,13 +14,19 @@ import { getCurrencies } from "@/server/settings";
 import { ExchangeTab } from "./exchange-tab";
 import { ManualTab } from "./manual-tab";
 
-interface BalanceButtonProps {
+interface BalanceDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   clientId: string;
   onSuccess: () => void;
 }
 
-export function BalanceButton({ clientId, onSuccess }: BalanceButtonProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function BalanceDialog({
+  open,
+  onOpenChange,
+  clientId,
+  onSuccess,
+}: BalanceDialogProps) {
   const [currencies, setCurrencies] = useState<
     { code: string; name: string }[]
   >([]);
@@ -40,54 +46,72 @@ export function BalanceButton({ clientId, onSuccess }: BalanceButtonProps) {
   }, []);
 
   useEffect(() => {
-    if (isOpen) {
+    if (open) {
       loadCurrencies();
     }
-  }, [isOpen, loadCurrencies]);
+  }, [open, loadCurrencies]);
 
   function handleSuccess() {
-    setIsOpen(false);
+    onOpenChange(false);
     onSuccess();
   }
 
   return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Пополнить баланс</DialogTitle>
+        </DialogHeader>
+
+        <Tabs defaultValue="exchange">
+          <TabsList className="w-full">
+            <TabsTrigger value="exchange" className="flex-1">
+              Обмен валют
+            </TabsTrigger>
+            <TabsTrigger value="manual" className="flex-1">
+              Ручная операция
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="exchange" className="mt-4">
+            <ExchangeTab
+              clientId={clientId}
+              currencies={currencies}
+              defaultCurrency={defaultCurrency}
+              onSuccess={handleSuccess}
+            />
+          </TabsContent>
+
+          <TabsContent value="manual" className="mt-4">
+            <ManualTab clientId={clientId} onSuccess={handleSuccess} />
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface BalanceButtonProps {
+  clientId: string;
+  onSuccess: () => void;
+}
+
+export function BalanceButton({ clientId, onSuccess }: BalanceButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
     <>
-      <Button variant="outline" className="" onClick={() => setIsOpen(true)}>
+      <Button variant="outline" onClick={() => setIsOpen(true)}>
         <Plus className="w-4 h-4" />
         Пополнить
       </Button>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Пополнить баланс</DialogTitle>
-          </DialogHeader>
-
-          <Tabs defaultValue="exchange">
-            <TabsList className="w-full">
-              <TabsTrigger value="exchange" className="flex-1">
-                Обмен валют
-              </TabsTrigger>
-              <TabsTrigger value="manual" className="flex-1">
-                Ручная операция
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="exchange" className="mt-4">
-              <ExchangeTab
-                clientId={clientId}
-                currencies={currencies}
-                defaultCurrency={defaultCurrency}
-                onSuccess={handleSuccess}
-              />
-            </TabsContent>
-
-            <TabsContent value="manual" className="mt-4">
-              <ManualTab clientId={clientId} onSuccess={handleSuccess} />
-            </TabsContent>
-          </Tabs>
-        </DialogContent>
-      </Dialog>
+      <BalanceDialog
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        clientId={clientId}
+        onSuccess={onSuccess}
+      />
     </>
   );
 }
