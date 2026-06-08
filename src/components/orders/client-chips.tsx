@@ -50,12 +50,12 @@ export function ClientChips({
           key={client.id}
           variant={activeClientId === client.id ? "default" : "outline"}
           size="sm"
-          className="rounded-full shrink-0 max-w-32 overflow-hidden text-ellipsis whitespace-nowrap justify-start"
+          className="rounded-full shrink-0 max-w-32"
           onClick={() =>
             onChange(client.id === activeClientId ? null : client.id)
           }
         >
-          {client.name}
+          <span className="truncate">{client.name}</span>
         </Button>
       ))}
     </div>
