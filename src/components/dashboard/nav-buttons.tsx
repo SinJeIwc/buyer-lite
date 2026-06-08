@@ -1,14 +1,15 @@
-import { VanIcon } from "lucide-react";
+import { ChartNoAxesCombinedIcon, VanIcon } from "lucide-react";
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 
 export function NavButtons() {
   return (
     <div className="grid grid-cols-2 gap-2">
-      <Link href="/clients">
+      <Link href="/analytics">
         <Card className="active:scale-[0.97] transition-transform">
-          <CardContent className="p-4 text-center">
-            <span className="text-sm font-medium">Клиенты</span>
+          <CardContent className="p-4 items-center text-sm font-medium flex justify-center gap-2">
+            <ChartNoAxesCombinedIcon className="w-4 h-4" />
+            <span className="text-sm font-medium">Аналитика</span>
           </CardContent>
         </Card>
       </Link>
